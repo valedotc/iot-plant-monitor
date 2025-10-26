@@ -29,7 +29,7 @@ class RGBHal {
     /*!
      * \brief Constructor
      */
-    explicit RGBHal(bool commonAnode = false);
+    explicit RGBHal(bool commonAnode);
 
     /*!
      * \brief Destructor
@@ -59,8 +59,6 @@ class RGBHal {
     uint8_t m_r_pin; //!< Red LED pin
     uint8_t m_g_pin; //!< Green LED pin
     uint8_t m_b_pin; //!< Blue LED pin
-
-    bool m_initialized; //!< Initialization status flag
 
     // Prevent copying
     RGBHal(const RGBHal &) = delete;
