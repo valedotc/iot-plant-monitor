@@ -2,10 +2,11 @@
 
 namespace PlantMonitor {
 namespace Drivers {
-RGBHal::RGBHal(bool common_anode = false)
+RGBHal::RGBHal()
     : m_r_pin(Config::RGB_LED_R_PIN),
       m_g_pin(Config::RGB_LED_G_PIN),
       m_b_pin(Config::RGB_LED_B_PIN) {
+        Serial.println("[RGBHal] RGBHal instance created");
 }
 
 bool RGBHal::begin() {
