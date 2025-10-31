@@ -29,7 +29,7 @@ class RGBHal {
     /*!
      * \brief Constructor
      */
-    explicit RGBHal(bool commonAnode);
+    RGBHal();
 
     /*!
      * \brief Destructor
@@ -62,7 +62,6 @@ class RGBHal {
 
     // Prevent copying
     RGBHal(const RGBHal &) = delete;
-    RGBHal &operator=(const RGBHal &) = delete;
 };
 } // namespace Drivers
 } // namespace PlantMonitor
