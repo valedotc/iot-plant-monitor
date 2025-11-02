@@ -1,0 +1,35 @@
+#pragma once 
+
+/*!
+ * \file network_config.h
+ * \brief Network configuration for WiFi and MQTT
+ * 
+ * \warning This file contains sensitive credentials and should be added to .gitignore
+ * \note Copy network_config.h.example to network_config.h and fill with your credentials
+ */
+
+namespace Config {
+
+// WiFi Configuration
+constexpr char WIFI_SSID[] = "WIFI_SSID";
+constexpr char WIFI_PASSWORD[] = "WIFI_PASSWORD";
+constexpr int WIFI_MAX_ATTEMPTS = 20;
+constexpr int WIFI_RETRY_DELAY_MS = 500;
+constexpr int WIFI_IP_WAIT_ATTEMPTS = 10;
+
+// MQTT Broker Configuration
+constexpr char MQTT_BROKER[] = "BROKER_DOMAIN";
+constexpr int MQTT_PORT = 8883;
+constexpr char MQTT_USER[] = "BROKER_USERNAME";
+constexpr char MQTT_PASSWORD[] = "BROKER_PASSWORD";
+
+// MQTT Topics
+constexpr char MQTT_TOPIC_STATUS[] = "plant_monitor/status";
+constexpr char MQTT_TOPIC_SENSORS[] = "plant_monitor/sensors";
+constexpr char MQTT_TOPIC_COMMANDS[] = "plant_monitor/commands";
+
+// MQTT Parameters
+constexpr int MQTT_KEEPALIVE_SEC = 60;
+constexpr int MQTT_POLL_INTERVAL_MS = 100;
+
+} // namespace Config
