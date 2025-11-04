@@ -2,7 +2,12 @@
 
 #include <Arduino.h>
 #include <ArduinoMqttClient.h>
-#include <WiFiS3.h>
+#include <memory>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <functional>
+#include <freertos/semphr.h>
+#include <freertos/FreeRTOS.h>
 
 /*!
  * \file mqtt_service.h
@@ -11,7 +16,8 @@
  * This class handles MQTT protocol operations including publish, subscribe,
  * and message handling.
  * 
- * \note Thread-safe when used with proper mutex
+ * \note This class is not thread-safe. If used in a multi-threaded context, external synchronization is required.
+ * 
  */
 
 namespace PlantMonitor {
@@ -22,7 +28,7 @@ namespace IoT {
  * \param topic The topic on which the message was received
  * \param payload The message payload as a String
  */
-typedef void (*MqttMessageCallback)(const char* topic, const String& payload);
+using MqttMessageCallback = std::function<void(String topic, String payload)>;
 
 /*!
  * \class MqttService
@@ -40,8 +46,7 @@ class MqttService {
      * \param username MQTT username
      * \param password MQTT password
      */
-    MqttService(WiFiSSLClient* wifi_client, const char* broker, int port,
-                const char* username, const char* password);
+    MqttService(WiFiClientSecure *wifi_client, const char *broker, int port, const char *username, const char *password);
 
     /*!
      * \brief Destructor
@@ -72,21 +77,21 @@ class MqttService {
      * \param retain Retain flag for persistent messages
      * \return true if publish successful, false otherwise
      */
-    bool publish(const char* topic, const char* message, bool retain = false);
+    bool publish(const char *topic, const char *message, bool retain = false);
 
     /*!
      * \brief Subscribe to a topic
      * \param topic MQTT topic to subscribe to
      * \return true if subscription successful, false otherwise
      */
-    bool subscribe(const char* topic);
+    bool subscribe(const char *topic);
 
     /*!
      * \brief Unsubscribe from a topic
      * \param topic MQTT topic to unsubscribe from
      * \return true if unsubscription successful, false otherwise
      */
-    bool unsubscribe(const char* topic);
+    bool unsubscribe(const char *topic);
 
     /*!
      * \brief Poll for incoming messages (must be called regularly in loop)
@@ -100,13 +105,13 @@ class MqttService {
     void setMessageCallback(MqttMessageCallback callback);
 
   private:
-    WiFiSSLClient* m_wifi_client;  //!< WiFi SSL client pointer
-    MqttClient* m_mqtt_client;     //!< MQTT client pointer
-    const char* m_broker;          //!< MQTT broker address
-    int m_port;                    //!< MQTT broker port
-    const char* m_username;        //!< MQTT username
-    const char* m_password;        //!< MQTT password
-    MqttMessageCallback m_callback; //!< Message callback function
+    WiFiClientSecure *m_wifi_client;              //!< WiFi SSL client pointer
+    std::unique_ptr<MqttClient> m_mqtt_client; //!< MQTT client pointer
+    const char *m_broker;                      //!< MQTT broker address
+    int m_port;                                //!< MQTT broker port
+    const char *m_username;                    //!< MQTT username
+    const char *m_password;                    //!< MQTT password
+    MqttMessageCallback m_callback;            //!< Message callback function
 
     /*!
      * \brief Internal message handler
@@ -117,11 +122,14 @@ class MqttService {
     /*!
      * \brief Static instance pointer for callback
      */
-    static MqttService* s_instance;
+    static MqttService *s_instance;
+
+    static SemaphoreHandle_t s_instance_mutex;
+    SemaphoreHandle_t m_mutex;
 
     // Prevent copying
-    MqttService(const MqttService&) = delete;
-    MqttService& operator=(const MqttService&) = delete;
+    MqttService(const MqttService &) = delete;
+    MqttService &operator=(const MqttService &) = delete;
 };
 
 } // namespace IoT

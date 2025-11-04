@@ -3,136 +3,156 @@
 namespace PlantMonitor {
 namespace IoT {
 
-// Static instance for callback
-MqttService* MqttService::s_instance = nullptr;
+MqttService *MqttService::s_instance = nullptr;
+SemaphoreHandle_t MqttService::s_instance_mutex = nullptr;
 
-MqttService::MqttService(WiFiSSLClient* wifi_client, const char* broker, int port,
-                         const char* username, const char* password)
-    : m_wifi_client(wifi_client)
-    , m_broker(broker)
-    , m_port(port)
-    , m_username(username)
-    , m_password(password)
-    , m_callback(nullptr) {
+MqttService::MqttService(WiFiClientSecure *wifi_client,
+                         const char *broker,
+                         int port,
+                         const char *username,
+                         const char *password)
+    : m_wifi_client(wifi_client),
+      m_broker(broker),
+      m_port(port),
+      m_username(username),
+      m_password(password),
+      m_callback(nullptr) {
+
+    if (s_instance_mutex == nullptr) {
+        s_instance_mutex = xSemaphoreCreateMutex();
+    }
     
-    m_mqtt_client = new MqttClient(*m_wifi_client);
-    s_instance = this;
+    m_mutex = xSemaphoreCreateMutex();
+    
+    if (s_instance_mutex != nullptr && xSemaphoreTake(s_instance_mutex, portMAX_DELAY) == pdTRUE) {
+        s_instance = this;
+        xSemaphoreGive(s_instance_mutex);
+    }
+
+    m_mqtt_client = std::make_unique<MqttClient>(*m_wifi_client);
 }
 
 MqttService::~MqttService() {
-    if (m_mqtt_client) {
-        delete m_mqtt_client;
-        m_mqtt_client = nullptr;
+    if (xSemaphoreTake(s_instance_mutex, portMAX_DELAY) == pdTRUE) {
+        s_instance = nullptr;
+        xSemaphoreGive(s_instance_mutex);
     }
-    s_instance = nullptr;
+
+    if (m_mutex) {
+        vSemaphoreDelete(m_mutex);
+    }
 }
 
 bool MqttService::begin() {
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) != pdTRUE)
+        return false;
+
     m_mqtt_client->setUsernamePassword(m_username, m_password);
-    
-    Serial.print("[MQTT] Connecting to broker: ");
-    Serial.print(m_broker);
-    Serial.print(":");
-    Serial.println(m_port);
-    
-    if (!m_mqtt_client->connect(m_broker, m_port)) {
-        Serial.print("[MQTT] Connection failed! Error code: ");
-        Serial.println(m_mqtt_client->connectError());
+    Serial.printf("[MQTT] Connecting to %s:%d\n", m_broker, m_port);
+
+    // ESP32 Secure Client needs cert handling
+    m_wifi_client->setInsecure(); // 🔒 Disabilita verifica del certificato, utile per test
+
+    bool success = m_mqtt_client->connect(m_broker, m_port);
+    if (!success) {
+        Serial.printf("[MQTT] Connection failed! Code: %d\n", m_mqtt_client->connectError());
+        xSemaphoreGive(m_mutex);
         return false;
     }
-    
+
     Serial.println("[MQTT] Connected successfully!");
-    
-    // Set up message callback
-    m_mqtt_client->onMessage(onMessageReceived);
-    
+
+    m_mqtt_client->onMessage([](int size) {
+        if (xSemaphoreTake(s_instance_mutex, portMAX_DELAY) == pdTRUE) {
+            if (s_instance)
+                s_instance->onMessageReceived(size);
+            xSemaphoreGive(s_instance_mutex);
+        }
+    });
+
+    xSemaphoreGive(m_mutex);
     return true;
 }
 
 void MqttService::disconnect() {
-    Serial.println("[MQTT] Disconnecting...");
-    m_mqtt_client->stop();
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        m_mqtt_client->stop();
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 bool MqttService::isConnected() const {
-    return m_mqtt_client->connected();
+    bool result = false;
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        result = m_mqtt_client->connected();
+        xSemaphoreGive(m_mutex);
+    }
+    return result;
 }
 
-bool MqttService::publish(const char* topic, const char* message, bool retain) {
-    Serial.print("[MQTT] Publishing to '");
-    Serial.print(topic);
-    Serial.print("': ");
-    Serial.println(message);
-    
-    m_mqtt_client->beginMessage(topic, retain);
-    m_mqtt_client->print(message);
-    int result = m_mqtt_client->endMessage();
-    
-    if (result == 0) {
-        Serial.println("[MQTT] Message published successfully");
-        return true;
-    } else {
-        Serial.print("[MQTT] Publish failed with error: ");
-        Serial.println(result);
-        return false;
+bool MqttService::publish(const char *topic, const char *message, bool retain) {
+    bool result = false;
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        m_mqtt_client->beginMessage(topic, retain);
+        m_mqtt_client->print(message);
+        result = (m_mqtt_client->endMessage() == 0);
+        xSemaphoreGive(m_mutex);
     }
+    return result;
 }
 
-bool MqttService::subscribe(const char* topic) {
-    Serial.print("[MQTT] Subscribing to topic: ");
-    Serial.println(topic);
-    
-    int result = m_mqtt_client->subscribe(topic);
-    if (result == 1) {
-        Serial.println("[MQTT] Subscription successful");
-        return true;
-    } else {
-        Serial.println("[MQTT] Subscription failed");
-        return false;
+bool MqttService::subscribe(const char *topic) {
+    bool result = false;
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        result = (m_mqtt_client->subscribe(topic) == 1);
+        xSemaphoreGive(m_mutex);
     }
+    return result;
 }
 
-bool MqttService::unsubscribe(const char* topic) {
-    Serial.print("[MQTT] Unsubscribing from topic: ");
-    Serial.println(topic);
-    
-    int result = m_mqtt_client->unsubscribe(topic);
-    if (result == 1) {
-        Serial.println("[MQTT] Unsubscription successful");
-        return true;
-    } else {
-        Serial.println("[MQTT] Unsubscription failed");
-        return false;
+bool MqttService::unsubscribe(const char *topic) {
+    bool result = false;
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        result = (m_mqtt_client->unsubscribe(topic) == 1);
+        xSemaphoreGive(m_mutex);
     }
+    return result;
 }
 
 void MqttService::poll() {
-    m_mqtt_client->poll();
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        m_mqtt_client->poll();
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void MqttService::setMessageCallback(MqttMessageCallback callback) {
-    m_callback = callback;
+    if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
+        m_callback = callback;
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 void MqttService::onMessageReceived(int message_size) {
-    if (!s_instance || !s_instance->m_callback) {
-        return;
+    if (xSemaphoreTake(s_instance->m_mutex, portMAX_DELAY) == pdTRUE) {
+        if (!s_instance->m_callback) {
+            xSemaphoreGive(s_instance->m_mutex);
+            return;
+        }
+
+        String topic = s_instance->m_mqtt_client->messageTopic();
+        String payload;
+        payload.reserve(message_size);
+
+        while (s_instance->m_mqtt_client->available()) {
+            payload += static_cast<char>(s_instance->m_mqtt_client->read());
+        }
+
+        s_instance->m_callback(topic, payload);
+        xSemaphoreGive(s_instance->m_mutex);
     }
-    
-    String topic = s_instance->m_mqtt_client->messageTopic();
-    String payload = "";
-    payload.reserve(message_size);
-    while (s_instance->m_mqtt_client->available()) {
-        payload += (char)s_instance->m_mqtt_client->read();
-    }
-    
-    Serial.print("[MQTT] Message received on '");
-    Serial.print(topic);
-    Serial.print("': ");
-    Serial.println(payload);
-    
-    s_instance->m_callback(topic.c_str(), payload);
 }
+
 
 } // namespace IoT
 } // namespace PlantMonitor

@@ -1,16 +1,17 @@
 #pragma once
 
 #include <Arduino.h>
-#include <WiFiS3.h>
+#include <WiFi.h>
 #include <IPAddress.h>
 
 /*!
  * \file wifi_hal.h
  * \brief Hardware abstraction layer for WiFi connectivity
  * 
- * This class handles low-level WiFi operations for Arduino R4 WiFi.
+ * This class handles low-level WiFi operations for ESP32.
  * 
- * \note Thread-safe when used with proper mutex in higher-level services
+ * \note This class is NOT thread-safe. If used from multiple threads,
+ * users must provide their own synchronization (e.g., mutexes) to protect WiFi library calls.
  */
 
 namespace PlantMonitor {
