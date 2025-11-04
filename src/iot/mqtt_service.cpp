@@ -121,7 +121,7 @@ void MqttService::onMessageReceived(int message_size) {
     
     String topic = s_instance->m_mqtt_client->messageTopic();
     String payload = "";
-    
+    payload.reserve(message_size);
     while (s_instance->m_mqtt_client->available()) {
         payload += (char)s_instance->m_mqtt_client->read();
     }
