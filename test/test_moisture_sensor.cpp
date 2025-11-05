@@ -83,7 +83,7 @@ void test_multiple_reads_stable() {
     mockAnalogValue = 1000;
     for (int i = 0; i < 10; i++) {
         uint8_t level = sensor->readMoistureLevel();
-        TEST_ASSERT_TRUE_MESSAGE(level >= 0 && level <= 100, "Moisture level out of bounds (0-100%) on multiple reads");
+        TEST_ASSERT_TRUE_MESSAGE(level <= 100, "Moisture level out of bounds (0-100%) on multiple reads");
     }
 }
 
@@ -102,7 +102,7 @@ void test_averaging_function() {
     avgSensor.begin();
 
     uint8_t level = avgSensor.readMoistureLevel();
-    TEST_ASSERT_TRUE_MESSAGE(level >= 0 && level <= 100, "Averaged moisture level out of bounds (0-100%)");
+    TEST_ASSERT_TRUE_MESSAGE(level <= 100, "Averaged moisture level out of bounds (0-100%)");
 }
 
 int main() {

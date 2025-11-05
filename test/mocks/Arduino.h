@@ -6,6 +6,7 @@
 */
 
 #pragma once
+
 #include <cstdint>
 #include <algorithm>
 
@@ -16,7 +17,6 @@
 
 int mockAnalogValue = 0;
 
-using uint8_t = unsigned char;
 void pinMode(uint8_t, uint8_t) {
 }
 void delay(unsigned long) {
