@@ -19,6 +19,11 @@ public:
      * \param smooth_window Size of moving average window (0 = no smoothing)
      */
     explicit DerivativeFilter(float scale = 1.0f, size_t smooth_window = 0);
+
+    /*!
+     * \brief Destructor
+     */
+    ~DerivativeFilter();
     
     /*!
      * \brief Apply the derivative filter to a new sample
