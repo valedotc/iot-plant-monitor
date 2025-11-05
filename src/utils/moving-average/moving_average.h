@@ -41,6 +41,8 @@ public:
 private:
     size_t m_size;                   //!< Number of samples to average
     std::vector<float> m_samples; //!< Stored samples
+    size_t m_index;                  //!< Current index for circular buffer
+    size_t m_count;                  //!< Number of samples added
 };
 } // namespace Utils
 } // namespace PlantMonitor
