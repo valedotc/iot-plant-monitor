@@ -36,9 +36,9 @@ constexpr uint8_t WATER_PUMP_PIN = 26;
 constexpr uint8_t GROW_LIGHT_PIN = 27;
 
 // ============ RGB LED Configuration ============
-constexpr uint8_t RGB_LED_R_PIN = 14; // PWM
-constexpr uint8_t RGB_LED_G_PIN = 12; // PWM
-constexpr uint8_t RGB_LED_B_PIN = 13; // PWM
+constexpr uint8_t RGB_LED_R_PIN = 6; // PWM
+constexpr uint8_t RGB_LED_G_PIN = 5; // PWM
+constexpr uint8_t RGB_LED_B_PIN = 3; // PWM
 
 // ============ FreeRTOS Configuration ============
 namespace Tasks {

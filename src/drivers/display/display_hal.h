@@ -1,13 +1,14 @@
+// display_hal.h
 #pragma once
 
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1327.h>
+#include <Adafruit_SH110X.h>
 #include <Wire.h>
 #include "app_config.h"
 
 /*!
  * \file display_hal.h
- * \brief Hardware abstraction layer for SSD1327 OLED display
+ * \brief Hardware abstraction layer for SH1107 OLED display
  * 
  * This class handles low-level display operations only.
  * High-level UI rendering is managed by ScreenManager.
@@ -18,9 +19,13 @@
 namespace PlantMonitor {
 namespace Drivers {
 
+// Costanti per colori monocromatici
+constexpr uint16_t COLOR_BLACK = SH110X_BLACK;
+constexpr uint16_t COLOR_WHITE = SH110X_WHITE;
+
 /*!
  * \class DisplayHAL
- * \brief Low-level driver for SSD1327 128x128 grayscale OLED
+ * \brief Low-level driver for SH1107 128x128 monochrome OLED
  */
 class DisplayHAL {
 public:
@@ -53,7 +58,7 @@ public:
     
     /*!
      * \brief Set display contrast/brightness
-     * \param level Brightness level 0-15 (SSD1327 grayscale)
+     * \param level Brightness level 0-255
      */
     void setBrightness(uint8_t level);
     
@@ -81,9 +86,20 @@ public:
      * \brief Draw a single pixel
      * \param x X coordinate (0-127)
      * \param y Y coordinate (0-127)
-     * \param color Grayscale value (0=black, 15=white)
+     * \param color Color value (SH110X_WHITE or SH110X_BLACK)
      */
-    void drawPixel(int16_t x, int16_t y, uint8_t color);
+    void drawPixel(int16_t x, int16_t y, uint16_t color);
+
+    /*!
+    * \brief Draw a monochrome bitmap
+    * \param bitmap Pointer to bitmap data in PROGMEM
+    * \param x Top-left X coordinate  
+    * \param y Top-left Y coordinate
+    * \param w Width in pixels
+    * \param h Height in pixels
+    * \param color Color value (COLOR_WHITE or COLOR_BLACK)
+    */
+    void drawBitmap(const uint8_t* bitmap, int16_t x = 0, int16_t y = 0, int16_t w = 128, int16_t h = 128, uint16_t color = COLOR_WHITE);
     
     /*!
      * \brief Draw a line
@@ -91,9 +107,9 @@ public:
      * \param y0 Start Y coordinate
      * \param x1 End X coordinate
      * \param y1 End Y coordinate
-     * \param color Grayscale value
+     * \param color Color value
      */
-    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color);
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
     
     /*!
      * \brief Draw a rectangle outline
@@ -101,9 +117,9 @@ public:
      * \param y Top-left Y
      * \param w Width
      * \param h Height
-     * \param color Grayscale value
+     * \param color Color value
      */
-    void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
+    void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
     
     /*!
      * \brief Draw a filled rectangle
@@ -111,39 +127,39 @@ public:
      * \param y Top-left Y
      * \param w Width
      * \param h Height
-     * \param color Grayscale value
+     * \param color Color value
      */
-    void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
+    void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
     
     /*!
      * \brief Draw a circle outline
      * \param x Center X
      * \param y Center Y
      * \param r Radius
-     * \param color Grayscale value
+     * \param color Color value
      */
-    void drawCircle(int16_t x, int16_t y, int16_t r, uint8_t color);
+    void drawCircle(int16_t x, int16_t y, int16_t r, uint16_t color);
     
     /*!
      * \brief Draw a filled circle
      * \param x Center X
      * \param y Center Y
      * \param r Radius
-     * \param color Grayscale value
+     * \param color Color value
      */
-    void fillCircle(int16_t x, int16_t y, int16_t r, uint8_t color);
+    void fillCircle(int16_t x, int16_t y, int16_t r, uint16_t color);
     
     /*!
      * \brief Draw a triangle outline
      */
     void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                      int16_t x2, int16_t y2, uint8_t color);
+                      int16_t x2, int16_t y2, uint16_t color);
     
     /*!
      * \brief Draw a filled triangle
      */
     void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                      int16_t x2, int16_t y2, uint8_t color);
+                      int16_t x2, int16_t y2, uint16_t color);
     
     // ============ Text Rendering ============
     
@@ -156,9 +172,9 @@ public:
     
     /*!
      * \brief Set text color
-     * \param color Grayscale value (0-15)
+     * \param color Color value (SH110X_WHITE or SH110X_BLACK)
      */
-    void setTextColor(uint8_t color);
+    void setTextColor(uint16_t color);
     
     /*!
      * \brief Set text size multiplier
@@ -193,7 +209,7 @@ public:
                        int16_t* x1, int16_t* y1, uint16_t* w, uint16_t* h);
     
 private:
-    Adafruit_SSD1327 m_display;     //!< Adafruit GFX driver instance
+    Adafruit_SH1107 m_display;     //!< Adafruit GFX driver instance
     bool m_initialized;              //!< Initialization status flag
     
     // Prevent copying
