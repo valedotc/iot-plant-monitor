@@ -13,8 +13,7 @@ void bme280HAL::begin() {
             ;
     }
 }
-/// @brief
-/// @return
+
 float bme280HAL::readTemperature() {
     return bme.readTemperature();
 }
