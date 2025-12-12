@@ -15,7 +15,9 @@ namespace PlantMonitor {
 namespace Drivers {
 
 /*!
- * \brief Hardware Abstraction Layer for the air temperature, air humidity, atmosferic pressure and altidute sensor
+ * \class bme280HAL
+ *
+ * \brief Read the air temperature, air humidity, atmospheric pressure and altidute, using bme280 sensor.
  */
 class bme280HAL {
   public:
