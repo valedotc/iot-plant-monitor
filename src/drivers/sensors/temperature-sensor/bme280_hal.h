@@ -3,7 +3,12 @@
 #include <Wire.h>
 #include <Adafruit_BME280.h>
 #include "app_config.h"
-
+/*!
+ * \file temperature_sensor.h
+ * \brief bme280 sensor hardware abstraction layer (HAL)
+ *
+ * This class provides high level apis to read temperature, air humidity, atmospheric pressure.
+ */
 #define SEALEVELPRESSURE_HPA (1023.25)
 
 namespace PlantMonitor {
