@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "drivers/display/display_hal.h"
-#include "drivers/sensors/temperature-sensor/temperature_sensor.h"
+#include "drivers/sensors/temperature-sensor/bme280_hal.h"
 
 #define VRX_PIN 34 // ADC1
 #define VRY_PIN 35 // ADC1

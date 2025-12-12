@@ -1,4 +1,4 @@
-#include "temperature_sensor.h"
+#include "bme280_hal.h"
 
 namespace PlantMonitor {
 namespace Drivers {
