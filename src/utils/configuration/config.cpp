@@ -131,11 +131,78 @@ bool ConfigHandler::isConfigured() {
   return true;
 }
 
-
 bool ConfigHandler::setUnconfigured() {
   Preferences prefs;
   if (!prefs.begin(kNamespace, false)) return false;
   prefs.putBool(kKeyOk, false);
   prefs.end();
   return true;
+}
+
+
+static void skipSpaces(const char*& p) {
+	while (*p && std::isspace(static_cast<unsigned char>(*p))) ++p;
+}
+
+static bool consumeChar(const char*& p, char ch) {
+	skipSpaces(p);
+	if (*p == ch) { ++p; return true; }
+	return false;
+}
+
+static bool parseQuotedString(const char*& p, std::string& out) {
+	skipSpaces(p);
+  if (*p != '"') return false;
+  ++p; // skip opening quote
+  
+  out.clear();
+  while (*p) {
+	  char c = *p++;
+	  if (c == '"') return true;           // end string
+	  if (c == '\\' && *p) {               // simple escape support
+		out += *p++;
+    } else {
+		out += c;
+    }
+}
+return false; // no closing quote
+}
+
+static bool parseFloat(const char*& p, float& out) {
+	skipSpaces(p);
+	char* endPtr = nullptr;
+	out = std::strtof(p, &endPtr);
+	if (endPtr == p) return false; // no conversion
+	p = endPtr;
+	return true;
+}
+
+bool ConfigHandler::parseAppCfg(const std::string& msg, AppConfig& cfg){
+	cfg = AppConfig{}; // reset
+	const char* p = msg.c_str();
+
+	if (!consumeChar(p, '[')) return false;
+
+	// 1) ssid
+	if (!parseQuotedString(p, cfg.ssid)) return false;
+	if (!consumeChar(p, ',')) return false;
+
+	// 2) password
+	if (!parseQuotedString(p, cfg.password)) return false;
+
+	// 3) optional: comma + floats until ']'
+	skipSpaces(p);
+	while (true) {
+		skipSpaces(p);
+		if (consumeChar(p, ']')) break; // end array
+		if (!consumeChar(p, ',')) return false; // must have comma before next token
+		float v = 0.0f;
+		if (!parseFloat(p, v)) return false;
+		cfg.params.push_back(v);
+
+		skipSpaces(p);
+		if (consumeChar(p, ']')) break;
+		// else loop expects either ", <float>" or "]"
+	}
+	return true;
 }

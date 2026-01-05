@@ -2,7 +2,7 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include <cstdint>
+#include <NimBLEDevice.h>
 
 class NimBLEServer;
 class NimBLECharacteristic;
@@ -13,6 +13,9 @@ namespace Drivers {
     class BleUartHal {
     
         public:
+            BleUartHal();
+            ~BleUartHal();
+
             using Bytes = std::vector<uint8_t>;
             using RxHandler = std::function<void(const Bytes&)>;
 
@@ -73,15 +76,23 @@ namespace Drivers {
              */
             void onRxWrite_(const uint8_t* data, size_t len);
 
-    private:
-        void startAdvertising_();
-        // Internal state
-        bool connected_ = false;
-        RxHandler rxHandler_;
+            /**
+             * \brief Starts advertising (making him visible and ready for a connection)
+             */
+            void startAdvertising_();
+    
+        private:
+            // Internal state
+            bool connected_ = false;
+            RxHandler rxHandler_;
 
-        // Forward declare NimBLE types (keep NimBLE includes in .cpp)
-        ::NimBLEServer* server_ = nullptr;
-        ::NimBLECharacteristic* txChar_ = nullptr;
+            // Forward declare NimBLE types (keep NimBLE includes in .cpp)
+            ::NimBLEServer* server_ = nullptr;
+            ::NimBLECharacteristic* txChar_ = nullptr;
+
+            // Prevent copying the object
+            BleUartHal(const BleUartHal&) = delete;
+            BleUartHal& operator=(const BleUartHal&) = delete;
     };
 
 

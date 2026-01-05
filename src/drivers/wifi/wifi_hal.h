@@ -33,7 +33,7 @@ class WiFiHal {
      * \param retry_delay_ms Delay between retry attempts in milliseconds
      */
     WiFiHal(const char* ssid, const char* password, 
-            int max_attempts = 20, int retry_delay_ms = 500);
+            int max_attempts = 3, int retry_delay_ms = 500);
 
     /*!
      * \brief Destructor

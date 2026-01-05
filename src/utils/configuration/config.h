@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <cctype>   // isspace
+#include <cstdlib>  // strtof
 
 struct AppConfig {
   std::string ssid;
@@ -23,6 +25,8 @@ class ConfigHandler{
 
         static bool isConfigured();
         static bool setUnconfigured();
+
+        static bool parseAppCfg(const std::string& msg, AppConfig& cfg);
 
     private:
         static constexpr const char* kKeyOk       = "ok";
