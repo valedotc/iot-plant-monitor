@@ -12,8 +12,6 @@
 static const char* DEVICE_NAME = "ESP32-PlantMonitor";
 
 
-// ["fabio","arianna06",15.0,30.0,45.0,75.0,25.0,85.0]
-
 using namespace PlantMonitor::Drivers;
 
 //----------------------
@@ -74,7 +72,6 @@ void setup() {
     ble->setRxHandler(
         [](const BleUartHal::Bytes& data)  
             {
-                // Example: treat payload as text for now
                 bleMsg = "";
                 bleMsg.reserve(data.size());
                 for (auto b : data) bleMsg += (char)b;
@@ -95,7 +92,7 @@ void loop() {
         case BOOT:
             //Serial.println("\nBOOT\n");
             if(!ConfigHandler::isConfigured()){
-                display->printf("\nMANNAGGIA A DIO INCUNFIGURATO\n");
+                display->printf("\nINCUNFIGURATO\n");
                 ble->startAdvertising_();
                 display->printf("[BLE] advertising started...\nWaiting for connection...");
                 display->update();
@@ -164,7 +161,7 @@ void loop() {
 
         case WIFI:
             if (!ConfigHandler::isConfigured()){
-                Serial.println("CHE CAZZO CI FAI QUI");
+                Serial.println("RETURNING TO BLE");
                 current_state = BLE_ADV;
                 break;
             }
@@ -182,7 +179,7 @@ void loop() {
             break;
         default:
             display->clear();
-            display->printf("\n\nDIOCANE STATO SCONOSCIUTO\n\n");
+            display->printf("\n\nSTATO SCONOSCIUTO\n\n");
             display->update();
     }
 }

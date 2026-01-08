@@ -10,6 +10,24 @@ class NimBLECharacteristic;
 namespace PlantMonitor {
 namespace Drivers {
 
+    /*!
+    * \file bluetooth_hal.h   
+    * \brief BLE UART-like HAL built on top of NimBLE-Arduino.
+    *
+    * \details
+    * This HAL exposes a minimal "UART over BLE" interface:
+    * - A custom BLE service with RX (write) and TX (notify) characteristics
+    * - A receive callback delivering raw bytes to the upper layer
+    * - Simple send helpers for raw bytes and text
+    *
+    * The implementation uses a Nordic UART Service (NUS)-style UUID set
+    * (commonly used by many BLE UART apps).
+    *
+    * \note Message reception is event-driven: the RX handler is invoked when the
+    *       RX characteristic is written by the peer (phone/app).
+    * \note This class is designed as a lightweight HAL; higher-level protocols
+    *       (framing, JSON, commands, ACKs, etc.) should live above it.
+    */
     class BleUartHal {
     
         public:
