@@ -47,15 +47,18 @@ bool MqttService::begin() {
     if (xSemaphoreTake(m_mutex, portMAX_DELAY) != pdTRUE)
         return false;
 
-    m_mqtt_client->setUsernamePassword(m_username, m_password);
-    Serial.printf("[MQTT] Connecting to %s:%d\n", m_broker, m_port);
+    m_mqtt_client.reset();
+    m_mqtt_client = std::make_unique<MqttClient>(*m_wifi_client);
 
-    // ESP32 Secure Client needs cert handling
-    m_wifi_client->setInsecure(); // 🔒 Disabilita verifica del certificato, utile per test
+    m_mqtt_client->setUsernamePassword(m_username, m_password);
+    m_mqtt_client->setId("esp32_001"); 
+
+    Serial.printf("[MQTT] Connecting to %s:%d\n", m_broker, m_port);
 
     bool success = m_mqtt_client->connect(m_broker, m_port);
     if (!success) {
         Serial.printf("[MQTT] Connection failed! Code: %d\n", m_mqtt_client->connectError());
+        Serial.printf("[MQTT] TLS socket connected(): %d\n", m_wifi_client->connected());
         xSemaphoreGive(m_mutex);
         return false;
     }
@@ -73,6 +76,7 @@ bool MqttService::begin() {
     xSemaphoreGive(m_mutex);
     return true;
 }
+
 
 void MqttService::disconnect() {
     if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
@@ -95,7 +99,7 @@ bool MqttService::publish(const char *topic, const char *message, bool retain) {
     if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
         m_mqtt_client->beginMessage(topic, retain);
         m_mqtt_client->print(message);
-        result = (m_mqtt_client->endMessage() == 0);
+        result = (m_mqtt_client->endMessage() == 1);
         xSemaphoreGive(m_mutex);
     }
     return result;

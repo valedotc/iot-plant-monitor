@@ -1,3 +1,5 @@
 .pio
 .vscode
 network_config.h
+
+private_data.h
