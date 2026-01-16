@@ -19,7 +19,7 @@ void startSensorTask(
     BaseType_t core = 0
 );
 
-// Get thrade safe latest sensor data
+// Get thread safe latest sensor data
 bool getLatestSensorData(SensorData& out);
 
 } // namespace Tasks

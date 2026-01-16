@@ -14,7 +14,7 @@ namespace Tasks {
 /*! \defgroup DisplayTiming Display Timing Configuration
  *  @{
  */
-#define UI_UPDATE_INTERVAL_MS 500   /*!< UI refresh interval in milliseconds */
+#define UI_UPDATE_INTERVAL_MS 100   /*!< UI refresh interval in milliseconds */
 #define UI_PAGE_TIMEOUT_MS   10000   /*!< Page timeout before returning to idle */
 /*! @} */
 
@@ -45,8 +45,8 @@ static void IRAM_ATTR onBootButtonPressed() {
  * \brief Initialize the boot button with interrupt
  */
 static void initButton() {
-    pinMode(0, INPUT_PULLUP);
-    attachInterrupt(0, onBootButtonPressed, FALLING);
+    pinMode(32, INPUT_PULLUP);
+    attachInterrupt(32, onBootButtonPressed, FALLING);
 }
 
 // ============================================================================
@@ -60,7 +60,7 @@ static void initButton() {
 #define VALUE_Y         64     // Main value vertical position (centered)
 #define UNIT_Y          90     // Unit text vertical position
 #define ICON_SIZE       32     // Icon/symbol size
-#define ICON_X          48     // Icon horizontal center position
+#define ICON_X          64     // Icon horizontal center position
 /*! @} */
 
 /*!
@@ -91,13 +91,25 @@ static void drawCenteredValue(float value, const char* unit, uint8_t decimals = 
     
     // Draw large value (centered)
     displayDriver->setTextSize(3);
-    int16_t valueWidth = strlen(buffer) * 18; // Approximate width for size 3
+    int16_t valueWidth = strlen(buffer) * 18;
     int16_t valueX = (128 - valueWidth) / 2;
     displayDriver->setCursor(valueX, VALUE_Y);
     displayDriver->printf("%s", buffer);
     
-    // Draw unit below (smaller, centered)
-    if (unit && strlen(unit) > 0) {
+    if (unit && (unit[0] == 'C' || unit[0] == 'F')) {
+        // Calcola larghezza di "°C" (cerchio + lettera)
+        int16_t unitTotalWidth = 6 + 12;  // cerchio(6px spazio) + C(12px)
+        int16_t unitStartX = (128 - unitTotalWidth) / 2;
+        
+        int16_t degX = unitStartX + 3;
+        int16_t degY = UNIT_Y + 4;
+        displayDriver->drawCircle(degX, degY, 3, COLOR_WHITE);
+        
+        displayDriver->setTextSize(2);
+        displayDriver->setCursor(unitStartX + 8, UNIT_Y);
+        displayDriver->printf("%c", unit[0]);
+    } else if (unit && strlen(unit) > 0) {
+        // Normal unit
         displayDriver->setTextSize(2);
         int16_t unitWidth = strlen(unit) * 12;
         int16_t unitX = (128 - unitWidth) / 2;
@@ -239,7 +251,7 @@ static void drawFaceIdle() {
     
     // Status message
     displayDriver->setTextSize(1);
-    int16_t msgX = (128 - 13 * 6) / 2; // Center "Plant is fine"
+    int16_t msgX = (128 - 13 * 6) / 2;
     displayDriver->setCursor(msgX, 100);
     displayDriver->printf("Plant is fine");
     
