@@ -97,7 +97,7 @@ namespace Drivers {
             /**
              * \brief Starts advertising (making him visible and ready for a connection)
              */
-            void startAdvertising_();
+            bool startAdvertising_();
     
         private:
             // Internal state

@@ -31,7 +31,7 @@ class bme280HAL {
     /*!
         * \brief Automatic initialization of the sensor
         */
-    void begin();
+    bool begin();
 
     /*!
         * \brief Take the bme280 air temperature measurement

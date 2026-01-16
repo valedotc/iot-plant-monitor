@@ -6,6 +6,7 @@ static const NimBLEUUID SERVICE_UUID("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
 static const NimBLEUUID RX_UUID     ("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"); // phone -> ESP32 (write)
 static const NimBLEUUID TX_UUID     ("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"); // ESP32 -> phone (notify)
 
+
 namespace PlantMonitor{
 namespace Drivers{
 
@@ -104,7 +105,7 @@ void BleUartHal::setRxHandler(RxHandler cb) {
 // BleUartHal internal methods
 // -----------------------------
 
-void BleUartHal::startAdvertising_() {
+bool BleUartHal::startAdvertising_() {
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
   adv->addServiceUUID(SERVICE_UUID);
   adv->setScanResponse(true);
@@ -113,7 +114,7 @@ void BleUartHal::startAdvertising_() {
   adv->setMinInterval(32); // 20ms 
   adv->setMaxInterval(64); // 40ms
 
-  adv->start();
+  return adv->start();
 }
 
 void BleUartHal::onConnect_() {

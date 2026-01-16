@@ -6,12 +6,12 @@ namespace Drivers {
 bme280HAL::bme280HAL() {
 }
 
-void bme280HAL::begin() {
+bool bme280HAL::begin() {
     if (!bme.begin(0x76, &Wire)) {
         Serial.print("[ BME ] Error: not found!");
-        while (1)
-            ;
+        return false;
     }
+    return true;
 }
 
 float bme280HAL::readTemperature() {
