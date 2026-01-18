@@ -110,6 +110,11 @@ bool BleUartHal::startAdvertising_() {
   adv->addServiceUUID(SERVICE_UUID);
   adv->setScanResponse(true);
 
+  NimBLEAdvertisementData advData;
+  uint8_t mfgData[] = { 0x47, 0xE9, 0xA7, 0x3B, 0x01 };
+  advData.setManufacturerData(std::string((char*) mfgData , sizeof(mfgData)));
+  adv->setAdvertisementData(advData);
+
   // same tuning as your function: formula -> x * 0.625ms
   adv->setMinInterval(32); // 20ms 
   adv->setMaxInterval(64); // 40ms
@@ -142,9 +147,6 @@ void BleUartHal::onRxWrite_(const uint8_t* data, size_t len) {
     rxHandler_(copy);
   }
 
-  // 2) OPTIONAL: keep your old "echo" behavior as a debug option.
-  //    In production, you'd remove this from HAL and do it in firmware logic.
-  // sendText(std::string("ESP32 dice: ") + std::string(reinterpret_cast<const char*>(data), len));
 }
 
 

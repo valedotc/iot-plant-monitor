@@ -2,6 +2,7 @@
 
 #include "drivers/sensors/temperature-sensor/bme280_hal.h"
 #include "drivers/sensors/moisture-sensor/moisture_sensor_hal.h"
+#include "drivers/sensors/light-sensor/light_sensor.h"
 
 using namespace PlantMonitor::Drivers;
 
@@ -10,6 +11,7 @@ namespace Tasks {
 
 static bme280HAL* environmentalSensor = nullptr;
 static MoistureSensorHAL* moistureSensor = nullptr;
+static LightSensor* lightSensor = nullptr;
 
 static SensorData latestData;
 static SemaphoreHandle_t dataMutex = nullptr;
@@ -27,6 +29,9 @@ static bool initSensors() {
         return false;
     }
 
+    lightSensor = new LightSensor();
+    lightSensor->begin();
+
     Serial.println("[INIT] Sensors initialized");
     return true;
 }
@@ -39,7 +44,16 @@ static bool readAllSensors(SensorData& data) {
     data.temperature   = environmentalSensor->readTemperature();
     data.humidity      = environmentalSensor->readHumidity();
     data.moisture      = moistureSensor->readMoistureLevel();
-    data.lightDetected = true; // TODO: Light sensor
+    
+    Serial.printf("[SENSORS] [Light] Raw: %d\n" , lightSensor->readRaw());
+    Serial.printf("[SENSORS] [Light] Voltage: %f\n" , lightSensor->readVoltage());
+    Serial.printf("[SENSORS] [Light] Percentage: %f\n" , lightSensor->readPercentage());
+
+    if (lightSensor->readPercentage() > 50){
+        data.lightDetected = true; // TODO: Light sensor
+    } else{
+        data.lightDetected = false;
+    }
 
     if (isnan(data.temperature) || isnan(data.humidity)) {
         Serial.println("[SENSORS] Invalid readings");

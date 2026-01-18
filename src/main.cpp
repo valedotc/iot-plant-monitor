@@ -3,6 +3,7 @@
 #include "tasks/sensor/sensor_task.h"
 #include "tasks/iot/iot_task.h"
 #include "tasks/display/display_task.h"
+#include "utils/configuration/config.h"
 
 using namespace PlantMonitor;
 
