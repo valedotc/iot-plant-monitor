@@ -2,6 +2,8 @@
 
 #include "drivers/display/display_hal.h"
 #include "../sensor/sensor_task.h"
+#include "drivers/sensors/button-sensor/button_sensor.h"  
+
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -25,6 +27,9 @@ static uint32_t lastUiUpdate = 0;
 static uint32_t lastInteraction = 0;
 
 static QueueHandle_t uiEventQueue = nullptr;
+
+static PlantMonitor::Drivers::ButtonHal button;
+
 
 /*!
  * \brief ISR callback for boot button press
@@ -306,8 +311,10 @@ static void DisplayTask(void*) {
         uint32_t now = millis();
 
         if (xQueueReceive(uiEventQueue, &evt, 0) == pdTRUE) {
-            currentState = nextState(currentState);
-            lastInteraction = now;
+            if(button.debouncing()){
+                currentState = nextState(currentState);
+                lastInteraction = now;
+            }
         }
 
         if (currentState != UiState::FACE_IDLE &&
