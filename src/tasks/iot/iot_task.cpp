@@ -352,14 +352,13 @@ static bool initializeMqttService() {
         tlsClient->stop();
         Serial.println("[MQTT] TLS test OK");
     }
-    
     if (!mqttService) {
         mqttService = new MqttService(tlsClient, MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD);
         mqttService->setMessageCallback([](String topic, String payload) {
             Serial.printf("[MQTT] RX %s: %s\n", topic.c_str(), payload.c_str());
         });
     }
-    
+
     return mqttService->begin();
 }
 
@@ -480,7 +479,7 @@ static SystemState handleBleTestingWifi() {
             wifiManager = new WiFiHal(ctx.pendingConfig.ssid.c_str(), ctx.pendingConfig.password.c_str());
             // Non chiamare begin(), siamo già connessi
 
-            vTaskDelay(200);
+            vTaskDelay(pdMS_TO_TICKS(200));
             delete bleController;
             bleController = nullptr;
             
@@ -553,16 +552,8 @@ static SystemState handleWifiConnecting() {
         return SystemState::MQTT_OPERATING;
     }
     
-    /*
-    if (millis() - ctx.wifiConnectStart > WIFI_TIMEOUT_MS) {
-        Serial.println("[WIFI] Connection timeout. Last configuration kept.");
-        delete wifiManager;
-        wifiManager = nullptr;
-        ctx.wifiConnectStart = 0;
-        if (bleController) bleController->startAdvertising_();
-        return SystemState::BLE_ADVERTISING;
-    }
-    */
+    wifiManager->begin();
+    vTaskDelay(pdMS_TO_TICKS(5000));
     
     return SystemState::WIFI_CONNECTING;
 }
