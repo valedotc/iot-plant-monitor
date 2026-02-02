@@ -45,9 +45,9 @@ static bool readAllSensors(SensorData& data) {
     data.humidity      = environmentalSensor->readHumidity();
     data.moisture      = moistureSensor->readMoistureLevel();
     
-    Serial.printf("[SENSORS] [Light] Raw: %d\n" , lightSensor->readRaw());
-    Serial.printf("[SENSORS] [Light] Voltage: %f\n" , lightSensor->readVoltage());
-    Serial.printf("[SENSORS] [Light] Percentage: %f\n" , lightSensor->readPercentage());
+    //Serial.printf("[SENSORS] [Light] Raw: %d\n" , lightSensor->readRaw());
+    //Serial.printf("[SENSORS] [Light] Voltage: %f\n" , lightSensor->readVoltage());
+    //Serial.printf("[SENSORS] [Light] Percentage: %f\n" , lightSensor->readPercentage());
 
     if (lightSensor->readPercentage() > 50){
         data.lightDetected = true; // TODO: Light sensor

@@ -14,7 +14,7 @@ void setup() {
 
     // Initialize serial
     Serial.begin(115200);
-    delay(100);
+    delay(1000);
     Serial.println("\n");
     Serial.println("=====================================");
     Serial.println("  Plant Monitor System v1.0");

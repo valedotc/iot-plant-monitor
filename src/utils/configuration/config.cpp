@@ -139,7 +139,6 @@ bool ConfigHandler::setUnconfigured() {
   return true;
 }
 
-
 static void skipSpaces(const char*& p) {
 	while (*p && std::isspace(static_cast<unsigned char>(*p))) ++p;
 }

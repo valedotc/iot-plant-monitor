@@ -298,6 +298,9 @@ static void DisplayTask(void*) {
     displayDriver->setTextColor(COLOR_WHITE);
 
     currentState = UiState::FACE_IDLE;
+    /*if (currentState == UiState::BOOT && !ConfigHandler::isConfigured()){
+        currentState = UiState::BLUETOOTH;    
+    }*/
     lastInteraction = millis();
 
     uiEventQueue = xQueueCreate(5, sizeof(uint8_t));

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "utils/configuration/config.h"
 
 namespace PlantMonitor {
 namespace Tasks {
@@ -10,6 +11,7 @@ namespace Tasks {
  */
 enum class UiState {
     BOOT,
+    BLUETOOTH,
     FACE_IDLE,
     PAGE_TEMPERATURE,
     PAGE_HUMIDITY,

@@ -250,10 +250,12 @@ static SystemState handleBleCommand(const char* data) {
     // PING
     if (strcmp(cmd, "ping") == 0) {
         bleSendPong();
+        return SystemState::BLE_CONFIGURING;
     }
     // GET_INFO
     else if (strcmp(cmd, "get_info") == 0) {
         bleSendInfo();
+        return SystemState::BLE_CONFIGURING;
     }
     // CONFIG
     else if (strcmp(cmd, "config") == 0) {
@@ -274,9 +276,11 @@ static SystemState handleBleCommand(const char* data) {
                 return SystemState::BLE_TESTING_WIFI;
             } else {
                 bleSendResult("config", false, "save_failed", "Saving Error NVS");
+                return SystemState::BLE_CONFIGURING;
             }
         } else {
             bleSendResult("config", false, "invalid_params", "Missing parameters");
+            return SystemState::BLE_CONFIGURING;
         }
     }
     // TEST_WIFI
@@ -289,9 +293,10 @@ static SystemState handleBleCommand(const char* data) {
             ctx.pendingConfig.params.clear();
             ctx.pendingCmd = "test_wifi";
             ctx.hasPendingConfig = false; // Don't save
-            ctx.currentState = SystemState::BLE_TESTING_WIFI;
+            return SystemState::BLE_TESTING_WIFI;
         } else {
             bleSendResult("test_wifi", false, "invalid_params", "missing SSID or password");
+            return SystemState::BLE_CONFIGURING;
         }
     }
     // RESET
@@ -300,10 +305,12 @@ static SystemState handleBleCommand(const char* data) {
         ConfigHandler::clear();
         ctx.deviceId = 1;
         bleSendResult("reset", true);
+        return SystemState::BLE_ADVERTISING;
     }
     // UNKNOWN
     else {
         bleSendResult(cmd, false, "unknown_cmd", "Unknown command");
+        return SystemState::BLE_CONFIGURING;
     }
 }
 
@@ -416,6 +423,7 @@ static SystemState handleBleAdvertising() {
 }
 
 static SystemState handleBleConfiguring() {
+
     // Check disconnection
     if (!bleController->isConnected()) {
         Serial.println("[BLE] Client disconnected");
@@ -459,7 +467,7 @@ static SystemState handleBleTestingWifi() {
         
         bleSendStatus("wifi_connected", 100);
         bleSendResult(ctx.pendingCmd.c_str(), true);
-        
+
         // Cleanup test
         delete ctx.testWifi;
         ctx.testWifi = nullptr;
@@ -471,13 +479,17 @@ static SystemState handleBleTestingWifi() {
             // Crea wifiManager permanente (riusa connessione esistente)
             wifiManager = new WiFiHal(ctx.pendingConfig.ssid.c_str(), ctx.pendingConfig.password.c_str());
             // Non chiamare begin(), siamo già connessi
+
+            vTaskDelay(200);
+            delete bleController;
             
             ctx.hasPendingConfig = false;
             return SystemState::MQTT_OPERATING;
         }
         
-        // Se era solo test, torna a configuring
+        vTaskDelay(pdMS_TO_TICKS(500));
         WiFi.disconnect();
+        // Se era solo test, torna a configuring
         return SystemState::BLE_CONFIGURING;
     }
     
@@ -536,11 +548,12 @@ static SystemState handleWifiConnecting() {
         Serial.println("[WIFI] Connected!");
         Serial.printf("[WIFI] IP: %s\n", WiFi.localIP().toString().c_str());
         ctx.wifiConnectStart = 0;
+
         return SystemState::MQTT_OPERATING;
     }
     
     if (millis() - ctx.wifiConnectStart > WIFI_TIMEOUT_MS) {
-        Serial.println("[WIFI] Connection timeout");
+        Serial.println("[WIFI] Connection timeout. Last configuration kept.");
         delete wifiManager;
         wifiManager = nullptr;
         ctx.wifiConnectStart = 0;

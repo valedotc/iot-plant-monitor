@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <NimBLEDevice.h>
+#include "utils/configuration/config.h"
 
 class NimBLEServer;
 class NimBLECharacteristic;
@@ -98,10 +99,18 @@ namespace Drivers {
              * \brief Starts advertising (making him visible and ready for a connection)
              */
             bool startAdvertising_();
+
+
+            /**
+             * \brief set ADVauto restarting
+             */
+            void setAutoRestartingADV(bool enable);
+            
     
         private:
             // Internal state
             bool connected_ = false;
+            bool autoRestartAdv = true;
             RxHandler rxHandler_;
 
             // Forward declare NimBLE types (keep NimBLE includes in .cpp)
