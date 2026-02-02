@@ -22,8 +22,8 @@ void setup() {
     Serial.println("=====================================");
     
     // NOTE: Uncomment to reset configuration during development
-    ConfigHandler::clear();
-    Serial.println("[DEV] Configuration cleared");
+    //ConfigHandler::clear();
+    //Serial.println("[DEV] Configuration cleared");
     
     Tasks::startDisplayTask(
         4096,

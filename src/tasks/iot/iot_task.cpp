@@ -399,7 +399,7 @@ static SystemState handleBoot() {
     
     if (!ConfigHandler::isConfigured()) {
         Serial.println("[FSM] Not configured, starting BLE advertising");
-        bleController->startAdvertising_();
+        if (bleController) bleController->startAdvertising_();
         return SystemState::BLE_ADVERTISING;
     }
     
@@ -427,7 +427,7 @@ static SystemState handleBleConfiguring() {
     // Check disconnection
     if (!bleController->isConnected()) {
         Serial.println("[BLE] Client disconnected");
-        bleController->startAdvertising_();
+        if (bleController) bleController->startAdvertising_();
         return SystemState::BLE_ADVERTISING;
     }
     
@@ -482,6 +482,7 @@ static SystemState handleBleTestingWifi() {
 
             vTaskDelay(200);
             delete bleController;
+            bleController = nullptr;
             
             ctx.hasPendingConfig = false;
             return SystemState::MQTT_OPERATING;
@@ -526,7 +527,7 @@ static SystemState handleWifiConnecting() {
             Serial.println("[CONFIG] Too many failures, clearing config");
             ConfigHandler::clear();
             ctx.configLoadFailures = 0;
-            bleController->startAdvertising_();
+            if (bleController) bleController->startAdvertising_();
             return SystemState::BLE_ADVERTISING;
         }
         
@@ -552,14 +553,16 @@ static SystemState handleWifiConnecting() {
         return SystemState::MQTT_OPERATING;
     }
     
+    /*
     if (millis() - ctx.wifiConnectStart > WIFI_TIMEOUT_MS) {
         Serial.println("[WIFI] Connection timeout. Last configuration kept.");
         delete wifiManager;
         wifiManager = nullptr;
         ctx.wifiConnectStart = 0;
-        bleController->startAdvertising_();
+        if (bleController) bleController->startAdvertising_();
         return SystemState::BLE_ADVERTISING;
     }
+    */
     
     return SystemState::WIFI_CONNECTING;
 }
@@ -575,6 +578,11 @@ static SystemState handleMqttOperating() {
             mqttService = nullptr;
         }
         
+        if (tlsClient){
+            delete tlsClient;
+            tlsClient = nullptr;
+        }
+
         return SystemState::WIFI_CONNECTING;
     }
     
