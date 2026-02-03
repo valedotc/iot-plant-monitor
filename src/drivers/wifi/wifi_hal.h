@@ -3,19 +3,30 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <IPAddress.h>
+#include <vector>
 
 /*!
  * \file wifi_hal.h
  * \brief Hardware abstraction layer for WiFi connectivity
- * 
+ *
  * This class handles low-level WiFi operations for ESP32.
- * 
+ *
  * \note This class is NOT thread-safe. If used from multiple threads,
  * users must provide their own synchronization (e.g., mutexes) to protect WiFi library calls.
  */
 
 namespace PlantMonitor {
 namespace Drivers {
+
+/*!
+ * \struct WiFiNetwork
+ * \brief Information about a scanned WiFi network
+ */
+struct WiFiNetwork {
+    String ssid;      //!< Network name
+    int32_t rssi;     //!< Signal strength in dBm
+    bool secure;      //!< true if network requires password
+};
 
 /*!
  * \class WiFiHal
@@ -73,6 +84,15 @@ class WiFiHal {
      * \brief Print connection status to Serial
      */
     void printStatus() const;
+
+    /*!
+     * \brief Scan for available WiFi networks
+     * \param maxNetworks Maximum number of networks to return (default 10)
+     * \return Vector of WiFiNetwork sorted by signal strength (strongest first)
+     * \note This is a static method - can be called without an instance
+     * \note Scan takes approximately 2-4 seconds
+     */
+    static std::vector<WiFiNetwork> scanNetworks(size_t maxNetworks = 10);
 
   private:
     const char* m_ssid;            //!< WiFi SSID
