@@ -131,6 +131,10 @@ bool ConfigHandler::isConfigured() {
   return true;
 }
 
+void setConfigure(){
+  
+}
+
 bool ConfigHandler::setUnconfigured() {
   Preferences prefs;
   if (!prefs.begin(kNamespace, false)) return false;
