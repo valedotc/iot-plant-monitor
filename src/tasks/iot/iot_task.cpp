@@ -7,6 +7,7 @@
 #include "iot/hivemq_ca.h"
 #include "utils/configuration/private_data.h"
 #include "utils/configuration/config.h"
+#include "esp_task_wdt.h"
 
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
@@ -264,20 +265,23 @@ static SystemState handleBleCommand(const char* data) {
             bleSendAck("config");
             bleSendStatus("saving_config");
             
-            if (ConfigHandler::save(cfg)) {
-                ctx.deviceId = getDeviceId(cfg);
-                Serial.printf("[CONFIG] Saved. Device ID: %d\n", ctx.deviceId);
-                
-                // Test WiFi connection
-                bleSendStatus("connecting_wifi", 0);
-                ctx.pendingCmd = "config";
-                ctx.hasPendingConfig = true;
-                ctx.pendingConfig = cfg;
-                return SystemState::BLE_TESTING_WIFI;
-            } else {
-                bleSendResult("config", false, "save_failed", "Saving Error NVS");
-                return SystemState::BLE_CONFIGURING;
-            }
+            // first check the credentials
+            // then make a test fo connection.
+
+            //if (ConfigHandler::save(cfg)) {
+            ctx.deviceId = getDeviceId(cfg);
+            //Serial.printf("[CONFIG] Saved. Device ID: %d\n", ctx.deviceId);
+            
+            // Test WiFi connection
+            bleSendStatus("connecting_wifi", 0);
+            ctx.pendingCmd = "config";
+            ctx.hasPendingConfig = true;
+            ctx.pendingConfig = cfg;
+            return SystemState::BLE_TESTING_WIFI;
+            //} else {
+            //    bleSendResult("config", false, "save_failed", "Saving Error NVS");
+            //    return SystemState::BLE_CONFIGURING;
+            //}
         } else {
             bleSendResult("config", false, "invalid_params", "Missing parameters");
             return SystemState::BLE_CONFIGURING;
@@ -341,8 +345,10 @@ static bool initializeMqttService() {
     if (!tlsClient) {
         tlsClient = new WiFiClientSecure();
         tlsClient->setCACert(HIVEMQ_ROOT_CA);
+        tlsClient->setTimeout(2);
         
         Serial.println("[MQTT] Testing TLS connection...");
+        vTaskDelay(pdMS_TO_TICKS(10));
         if (!tlsClient->connect(MQTT_BROKER, MQTT_PORT)) {
             Serial.println("[MQTT] TLS test failed");
             delete tlsClient;
@@ -461,30 +467,38 @@ static SystemState handleBleTestingWifi() {
     
     // Check success
     if (ctx.testWifi->isConnected()) {
+
+        //SUCCESS TEST
         Serial.println("[WIFI] Test successful!");
         Serial.printf("[WIFI] IP: %s\n", WiFi.localIP().toString().c_str());
         
         bleSendStatus("wifi_connected", 100);
         bleSendResult(ctx.pendingCmd.c_str(), true);
-
+        
         // Cleanup test
         delete ctx.testWifi;
         ctx.testWifi = nullptr;
-        
+    
         // Se era config, vai a MQTT
         if (ctx.hasPendingConfig) {
             vTaskDelay(pdMS_TO_TICKS(500));
             
+            AppConfig cfg;
+            cfg = ctx.pendingConfig;
+            Serial.println("[CONFIG] WROTE CONFIG ON FLASH");
+            ConfigHandler::save(cfg);
+            ctx.hasPendingConfig = false;
+
             // Crea wifiManager permanente (riusa connessione esistente)
             wifiManager = new WiFiHal(ctx.pendingConfig.ssid.c_str(), ctx.pendingConfig.password.c_str());
             // Non chiamare begin(), siamo già connessi
-
+            
             vTaskDelay(pdMS_TO_TICKS(200));
             delete bleController;
             bleController = nullptr;
             
             ctx.hasPendingConfig = false;
-            return SystemState::MQTT_OPERATING;
+            return SystemState::WIFI_CONNECTING;
         }
         
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -626,6 +640,7 @@ static SystemState handleError() {
 
 static void IoTTask(void*) {
     // Inizializza contesto
+    esp_task_wdt_delete(NULL);
     memset(&ctx, 0, sizeof(ctx));
     ctx.currentState = SystemState::BOOT;
     ctx.deviceId = 1;
