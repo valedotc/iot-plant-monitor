@@ -11,7 +11,7 @@ namespace Tasks {
  */
 enum class UiState {
     BOOT,
-    BLUETOOTH,
+    PAIRING,
     FACE_IDLE,
     PAGE_TEMPERATURE,
     PAGE_HUMIDITY,

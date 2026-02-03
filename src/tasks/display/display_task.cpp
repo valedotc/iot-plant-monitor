@@ -3,6 +3,7 @@
 #include "drivers/display/display_hal.h"
 #include "../sensor/sensor_task.h"
 #include "drivers/sensors/button-sensor/button_sensor.h"  
+#include "utils/bitmap/bluetooth_icon.h"
 
 
 #include <freertos/FreeRTOS.h>
@@ -29,6 +30,7 @@ static uint32_t lastInteraction = 0;
 static QueueHandle_t uiEventQueue = nullptr;
 
 static PlantMonitor::Drivers::ButtonHal button;
+
 
 
 /*!
@@ -261,10 +263,22 @@ static void drawFaceIdle() {
     displayDriver->printf("Plant is fine");
     
     // Optional: Small icon indicators at top
-    displayDriver->setTextSize(1);
-    displayDriver->setCursor(4, 4);
-    displayDriver->printf("[OK]");
+    //displayDriver->setTextSize(1);
+    //displayDriver->setCursor(4, 4);
+    //displayDriver->printf("[OK]");
     
+    displayDriver->update();
+}
+
+
+/**
+ * \brief Draw the Bluetooth icon
+ */
+static void drawBluetoothIcon() {
+    displayDriver->clear();
+    displayDriver->drawBitmap(bluetooth_icon_bmp);
+
+
     displayDriver->update();
 }
 
@@ -296,16 +310,15 @@ static void DisplayTask(void*) {
 
     displayDriver->setTextSize(1);
     displayDriver->setTextColor(COLOR_WHITE);
-
-    currentState = UiState::FACE_IDLE;
-    /*if (currentState == UiState::BOOT && !ConfigHandler::isConfigured()){
-        currentState = UiState::BLUETOOTH;    
-    }*/
     lastInteraction = millis();
 
     uiEventQueue = xQueueCreate(5, sizeof(uint8_t));
 
     initButton();
+
+    if (!ConfigHandler::isConfigured()) {
+        currentState = UiState::PAIRING;
+    }
 
     uint8_t evt;
     SensorData data;
@@ -321,7 +334,7 @@ static void DisplayTask(void*) {
         }
 
         if (currentState != UiState::FACE_IDLE &&
-            now - lastInteraction > UI_PAGE_TIMEOUT_MS) {
+            now - lastInteraction > UI_PAGE_TIMEOUT_MS && ConfigHandler::isConfigured()) {
             currentState = UiState::FACE_IDLE;
         }
 
@@ -330,6 +343,7 @@ static void DisplayTask(void*) {
             getLatestSensorData(data);
 
             switch (currentState) {
+                case UiState::PAIRING:          drawBluetoothIcon(); break;
                 case UiState::FACE_IDLE:        drawFaceIdle(); break;
                 case UiState::PAGE_TEMPERATURE: drawTemperature(data); break;
                 case UiState::PAGE_HUMIDITY:    drawHumidity(data); break;
