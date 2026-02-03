@@ -144,6 +144,13 @@ static void bleSendJson(JsonDocument& doc) {
     bleController->sendText(json.c_str());
 }
 
+static void bleSendJsonChunked(JsonDocument& doc) {
+    String json;
+    serializeJson(doc, json);
+    Serial.printf("[BLE] TX (chunked): %s\n", json.c_str());
+    bleController->sendTextChunked(json.c_str());
+}
+
 static void bleSendPong() {
     StaticJsonDocument<256> doc;
     doc["type"] = "pong";
@@ -196,6 +203,23 @@ static void bleSendResult(const char* cmd, bool success, const char* error = nul
     if (error) doc["error"] = error;
     if (msg) doc["msg"] = msg;
     bleSendJson(doc);
+}
+
+static void bleSendWifiList() {
+    auto networks = WiFiHal::scanNetworks(8);
+
+    StaticJsonDocument<1024> doc;
+    doc["type"] = "wifi_list";
+    JsonArray arr = doc.createNestedArray("networks");
+
+    for (const auto& net : networks) {
+        JsonObject obj = arr.createNestedObject();
+        obj["ssid"] = net.ssid;
+        obj["rssi"] = net.rssi;
+        obj["secure"] = net.secure;
+    }
+
+    bleSendJsonChunked(doc);
 }
 
 // ============================================================================
@@ -251,6 +275,12 @@ static SystemState handleBleCommand(const char* data) {
     // PING
     if (strcmp(cmd, "ping") == 0) {
         bleSendPong();
+        return SystemState::BLE_CONFIGURING;
+    }
+    // WIFI_SCAN
+    else if (strcmp(cmd, "wifi_scan") == 0) {
+        bleSendAck("wifi_scan");
+        bleSendWifiList();
         return SystemState::BLE_CONFIGURING;
     }
     // GET_INFO
@@ -341,12 +371,12 @@ static bool initializeMqttService() {
     if (mqttService && mqttService->isConnected()) {
         return true;
     }
-    
+
     if (!tlsClient) {
         tlsClient = new WiFiClientSecure();
         tlsClient->setCACert(HIVEMQ_ROOT_CA);
-        tlsClient->setTimeout(2);
-        
+        tlsClient->setTimeout(10);
+
         Serial.println("[MQTT] Testing TLS connection...");
         vTaskDelay(pdMS_TO_TICKS(10));
         if (!tlsClient->connect(MQTT_BROKER, MQTT_PORT)) {

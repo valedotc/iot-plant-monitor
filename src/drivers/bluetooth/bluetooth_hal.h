@@ -71,6 +71,20 @@ namespace Drivers {
             bool sendText(const std::string& text);
 
             /**
+             * \brief Send large data in chunks to avoid BLE MTU limits
+             * \param data pointer to data
+             * \param len size of data
+             * \param chunkSize max bytes per chunk (default 240, safe under most MTU)
+             * \return true if all chunks sent successfully
+             */
+            bool sendChunked(const uint8_t* data, size_t len, size_t chunkSize = 240);
+
+            /**
+             * \brief A wrapper for strings of sendChunked()
+             */
+            bool sendTextChunked(const std::string& text);
+
+            /**
              * \brief Setter for a function that should handle RX receiving
              * \param cb void function(uint8_t* data)
              */

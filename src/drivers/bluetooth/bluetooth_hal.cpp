@@ -104,6 +104,39 @@ bool BleUartHal::sendText(const std::string& text) {
   return send(reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
+bool BleUartHal::sendChunked(const uint8_t* data, size_t len, size_t chunkSize) {
+  if (!connected_ || txChar_ == nullptr || data == nullptr || len == 0) {
+    Serial.println("[BLE] sendChunked: not connected or invalid data");
+    return false;
+  }
+
+  size_t offset = 0;
+  int chunkNum = 0;
+
+  while (offset < len) {
+    size_t toSend = (len - offset > chunkSize) ? chunkSize : (len - offset);
+
+    std::string payload(reinterpret_cast<const char*>(data + offset), toSend);
+    txChar_->setValue(payload);
+    txChar_->notify();
+
+    offset += toSend;
+    chunkNum++;
+
+    // Small delay between chunks to let BLE stack process
+    if (offset < len) {
+      vTaskDelay(pdMS_TO_TICKS(20));
+    }
+  }
+
+  Serial.printf("[BLE] Sent %d bytes in %d chunks\n", len, chunkNum);
+  return true;
+}
+
+bool BleUartHal::sendTextChunked(const std::string& text) {
+  return sendChunked(reinterpret_cast<const uint8_t*>(text.data()), text.size());
+}
+
 void BleUartHal::setRxHandler(RxHandler cb) {
   rxHandler_ = std::move(cb);
 }

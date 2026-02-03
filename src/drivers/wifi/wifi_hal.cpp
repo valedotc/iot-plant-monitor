@@ -1,7 +1,63 @@
 #include "wifi_hal.h"
+#include <algorithm>
 
 namespace PlantMonitor {
 namespace Drivers {
+
+std::vector<WiFiNetwork> WiFiHal::scanNetworks(size_t maxNetworks) {
+    std::vector<WiFiNetwork> networks;
+
+    Serial.println("[WiFi] Starting network scan...");
+
+    int n = WiFi.scanNetworks(false, false); // sync, no hidden networks
+
+    if (n <= 0) {
+        Serial.println("[WiFi] No networks found");
+        return networks;
+    }
+
+    Serial.printf("[WiFi] Found %d networks\n", n);
+
+    // Collect all networks
+    for (int i = 0; i < n; i++) {
+        String ssid = WiFi.SSID(i);
+
+        // Skip empty SSIDs (hidden networks)
+        if (ssid.length() == 0) continue;
+
+        // Skip duplicates (same SSID on different channels)
+        bool duplicate = false;
+        for (const auto& net : networks) {
+            if (net.ssid == ssid) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (duplicate) continue;
+
+        WiFiNetwork net;
+        net.ssid = ssid;
+        net.rssi = WiFi.RSSI(i);
+        net.secure = (WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
+        networks.push_back(net);
+    }
+
+    // Sort by signal strength (strongest first)
+    std::sort(networks.begin(), networks.end(), [](const WiFiNetwork& a, const WiFiNetwork& b) {
+        return a.rssi > b.rssi;
+    });
+
+    // Limit to maxNetworks
+    if (networks.size() > maxNetworks) {
+        networks.resize(maxNetworks);
+    }
+
+    // Cleanup scan results from memory
+    WiFi.scanDelete();
+
+    Serial.printf("[WiFi] Returning %d unique networks\n", networks.size());
+    return networks;
+}
 
 WiFiHal::WiFiHal(const char* ssid, const char* password,
                  int max_attempts, int retry_delay_ms)
