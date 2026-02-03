@@ -139,7 +139,6 @@ bool ConfigHandler::setUnconfigured() {
   return true;
 }
 
-
 static void skipSpaces(const char*& p) {
 	while (*p && std::isspace(static_cast<unsigned char>(*p))) ++p;
 }
@@ -178,31 +177,62 @@ static bool parseFloat(const char*& p, float& out) {
 }
 
 bool ConfigHandler::parseAppCfg(const std::string& msg, AppConfig& cfg){
-	cfg = AppConfig{}; // reset
-	const char* p = msg.c_str();
+  
+  cfg = AppConfig{}; // reset
+  const char* p = msg.c_str();
 
-	if (!consumeChar(p, '[')) return false;
+  if (!consumeChar(p, '{')) return false;
 
-	// 1) ssid
-	if (!parseQuotedString(p, cfg.ssid)) return false;
-	if (!consumeChar(p, ',')) return false;
-
-	// 2) password
-	if (!parseQuotedString(p, cfg.password)) return false;
-
-	// 3) optional: comma + floats until ']'
-	skipSpaces(p);
-	while (true) {
-		skipSpaces(p);
-		if (consumeChar(p, ']')) break; // end array
-		if (!consumeChar(p, ',')) return false; // must have comma before next token
-		float v = 0.0f;
-		if (!parseFloat(p, v)) return false;
-		cfg.params.push_back(v);
-
-		skipSpaces(p);
-		if (consumeChar(p, ']')) break;
-		// else loop expects either ", <float>" or "]"
-	}
-	return true;
+  // Parse key-value pairs
+  bool foundSsid = false, foundPass = false;
+  
+  while (true) {
+    skipSpaces(p);
+    if (consumeChar(p, '}')) break;
+    
+    if (foundSsid || foundPass) {
+      if (!consumeChar(p, ',')) return false;
+    }
+    
+    std::string key;
+    if (!parseQuotedString(p, key)) return false;
+    if (!consumeChar(p, ':')) return false;
+    
+    if (key == "cmd") {
+      std::string cmd;
+      if (!parseQuotedString(p, cmd)) return false;
+      // Optionally validate cmd == "config"
+    } else if (key == "ssid") {
+      if (!parseQuotedString(p, cfg.ssid)) return false;
+      foundSsid = true;
+    } else if (key == "pass") {
+      if (!parseQuotedString(p, cfg.password)) return false;
+      foundPass = true;
+    } else if (key == "params") {
+      if (!consumeChar(p, '[')) return false;
+      skipSpaces(p);
+      if (!consumeChar(p, ']')) { // non-empty array
+        while (true) {
+          float v = 0.0f;
+          if (!parseFloat(p, v)) return false;
+          cfg.params.push_back(v);
+          skipSpaces(p);
+          if (consumeChar(p, ']')) break;
+          if (!consumeChar(p, ',')) return false;
+        }
+      }
+    } else {
+      // Unknown key, skip value (simple skip for string or number)
+      skipSpaces(p);
+      if (*p == '"') {
+        std::string dummy;
+        if (!parseQuotedString(p, dummy)) return false;
+      } else {
+        float dummy;
+        if (!parseFloat(p, dummy)) return false;
+      }
+    }
+  }
+  
+  return foundSsid && foundPass;
 }

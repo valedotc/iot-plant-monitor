@@ -44,7 +44,11 @@ private:
 // -----------------------------
 
 BleUartHal::BleUartHal(){}
-BleUartHal::~BleUartHal(){}
+
+
+BleUartHal::~BleUartHal(){
+  this->end();
+}
 
 
 bool BleUartHal::begin(const char* deviceName) {
@@ -74,7 +78,10 @@ bool BleUartHal::begin(const char* deviceName) {
 void BleUartHal::end() {
   // Many projects never need to deinit BLE.
   // If you do, be careful: deinit affects re-init and memory.
-  // NimBLEDevice::deinit(true);
+  if(server_) {
+    server_->setCallbacks(nullptr);
+  }
+  NimBLEDevice::deinit();
 }
 
 bool BleUartHal::isConnected() const {
@@ -110,11 +117,20 @@ bool BleUartHal::startAdvertising_() {
   adv->addServiceUUID(SERVICE_UUID);
   adv->setScanResponse(true);
 
+  NimBLEAdvertisementData advData;
+  uint8_t mfgData[] = { 0x47, 0xE9, 0xA7, 0x3B, 0x01 };
+  advData.setManufacturerData(std::string((char*) mfgData , sizeof(mfgData)));
+  adv->setAdvertisementData(advData);
+
   // same tuning as your function: formula -> x * 0.625ms
   adv->setMinInterval(32); // 20ms 
   adv->setMaxInterval(64); // 40ms
 
   return adv->start();
+}
+
+void BleUartHal::setAutoRestartingADV(bool enable){
+  autoRestartAdv = enable;
 }
 
 void BleUartHal::onConnect_() {
@@ -124,8 +140,10 @@ void BleUartHal::onConnect_() {
 
 void BleUartHal::onDisconnect_() {
   connected_ = false;
-  Serial.println("[BLE] disconnected. Restarting advertising...");
-  startAdvertising_(); // keeps your advertising config consistent
+  if(autoRestartAdv){
+    Serial.println("[BLE] disconnected. Restarting advertising...");
+    startAdvertising_(); // keeps your advertising config consistent
+  }
 }
 
 void BleUartHal::onRxWrite_(const uint8_t* data, size_t len) {
@@ -142,9 +160,6 @@ void BleUartHal::onRxWrite_(const uint8_t* data, size_t len) {
     rxHandler_(copy);
   }
 
-  // 2) OPTIONAL: keep your old "echo" behavior as a debug option.
-  //    In production, you'd remove this from HAL and do it in firmware logic.
-  // sendText(std::string("ESP32 dice: ") + std::string(reinterpret_cast<const char*>(data), len));
 }
 
 
