@@ -5,8 +5,8 @@
 
 // Size bitmap: 2048 bytes
 
-#define imageWidth 128
-#define imageHeight 128
+#define BLUETOOTH_ICON_IMAGE_WIDTH 128
+#define BLUETOOTH_ICON_IMAGE_HEIGHT 128
 
 // 'Display 128x128', 128x128px
 const uint8_t bluetooth_icon_bmp [] PROGMEM = {

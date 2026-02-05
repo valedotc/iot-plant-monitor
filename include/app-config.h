@@ -29,15 +29,9 @@ constexpr uint8_t COLOR_GRAY_LIGHT = 12;
 
 // ============ Sensor Pins ============
 constexpr uint8_t SOIL_MOISTURE_PIN = 34; // ADC1
-constexpr uint8_t ONEWIRE_PIN = 25;       // DS18B20 //ToDel
 
 // ============ Actuator Pins ============
 constexpr uint8_t GROW_LIGHT_PIN = 35;
-
-// ============ RGB LED Configuration ============
-constexpr uint8_t RGB_LED_R_PIN = 6; // PWM //ToDel
-constexpr uint8_t RGB_LED_G_PIN = 5; // PWM //ToDel
-constexpr uint8_t RGB_LED_B_PIN = 3; // PWM //ToDel
 
 // ============ FreeRTOS Configuration ============
 namespace Tasks {

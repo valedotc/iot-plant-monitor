@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../sensor/sensor_task.h"
+#include "../sensor/sensor-task.h"
 
 namespace PlantMonitor {
 namespace Tasks {

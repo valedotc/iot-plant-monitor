@@ -2,7 +2,7 @@
 
 #include <Wire.h>
 #include <Adafruit_BME280.h>
-#include "app_config.h"
+#include "app-config.h"
 /*!
  * \file temperature_sensor.h
  * \brief bme280 sensor hardware abstraction layer (HAL)
@@ -15,18 +15,18 @@ namespace PlantMonitor {
 namespace Drivers {
 
 /*!
- * \class bme280HAL
+ * \class Bme280Hal
  *
  * \brief Read the air temperature, air humidity, atmospheric pressure and altidute, using bme280 sensor.
  */
-class bme280HAL {
+class Bme280Hal {
   public:
-    explicit bme280HAL();
+    explicit Bme280Hal();
 
     /*!
         * \brief Destructor
         */
-    ~bme280HAL() = default;
+    ~Bme280Hal() = default;
 
     /*!
         * \brief Automatic initialization of the sensor

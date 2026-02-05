@@ -1,4 +1,4 @@
-#include "light_sensor.h"
+#include "light-sensor.h"
 
 namespace PlantMonitor{
 namespace Drivers{

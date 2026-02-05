@@ -2,4 +2,4 @@
 .vscode
 network_config.h
 
-private_data.h
+private-data.h

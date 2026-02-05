@@ -131,10 +131,6 @@ bool ConfigHandler::isConfigured() {
   return true;
 }
 
-void setConfigure(){
-  
-}
-
 bool ConfigHandler::setUnconfigured() {
   Preferences prefs;
   if (!prefs.begin(kNamespace, false)) return false;
@@ -143,18 +139,18 @@ bool ConfigHandler::setUnconfigured() {
   return true;
 }
 
-static void skipSpaces(const char*& p) {
+static void prv_skip_spaces(const char*& p) {
 	while (*p && std::isspace(static_cast<unsigned char>(*p))) ++p;
 }
 
-static bool consumeChar(const char*& p, char ch) {
-	skipSpaces(p);
+static bool prv_consume_char(const char*& p, char ch) {
+	prv_skip_spaces(p);
 	if (*p == ch) { ++p; return true; }
 	return false;
 }
 
-static bool parseQuotedString(const char*& p, std::string& out) {
-	skipSpaces(p);
+static bool prv_parse_quoted_string(const char*& p, std::string& out) {
+	prv_skip_spaces(p);
   if (*p != '"') return false;
   ++p; // skip opening quote
   
@@ -171,8 +167,8 @@ static bool parseQuotedString(const char*& p, std::string& out) {
 return false; // no closing quote
 }
 
-static bool parseFloat(const char*& p, float& out) {
-	skipSpaces(p);
+static bool prv_parse_float(const char*& p, float& out) {
+	prv_skip_spaces(p);
 	char* endPtr = nullptr;
 	out = std::strtof(p, &endPtr);
 	if (endPtr == p) return false; // no conversion
@@ -185,55 +181,55 @@ bool ConfigHandler::parseAppCfg(const std::string& msg, AppConfig& cfg){
   cfg = AppConfig{}; // reset
   const char* p = msg.c_str();
 
-  if (!consumeChar(p, '{')) return false;
+  if (!prv_consume_char(p, '{')) return false;
 
   // Parse key-value pairs
   bool foundSsid = false, foundPass = false;
   
   while (true) {
-    skipSpaces(p);
-    if (consumeChar(p, '}')) break;
+    prv_skip_spaces(p);
+    if (prv_consume_char(p, '}')) break;
     
     if (foundSsid || foundPass) {
-      if (!consumeChar(p, ',')) return false;
+      if (!prv_consume_char(p, ',')) return false;
     }
     
     std::string key;
-    if (!parseQuotedString(p, key)) return false;
-    if (!consumeChar(p, ':')) return false;
+    if (!prv_parse_quoted_string(p, key)) return false;
+    if (!prv_consume_char(p, ':')) return false;
     
     if (key == "cmd") {
       std::string cmd;
-      if (!parseQuotedString(p, cmd)) return false;
+      if (!prv_parse_quoted_string(p, cmd)) return false;
       // Optionally validate cmd == "config"
     } else if (key == "ssid") {
-      if (!parseQuotedString(p, cfg.ssid)) return false;
+      if (!prv_parse_quoted_string(p, cfg.ssid)) return false;
       foundSsid = true;
     } else if (key == "pass") {
-      if (!parseQuotedString(p, cfg.password)) return false;
+      if (!prv_parse_quoted_string(p, cfg.password)) return false;
       foundPass = true;
     } else if (key == "params") {
-      if (!consumeChar(p, '[')) return false;
-      skipSpaces(p);
-      if (!consumeChar(p, ']')) { // non-empty array
+      if (!prv_consume_char(p, '[')) return false;
+      prv_skip_spaces(p);
+      if (!prv_consume_char(p, ']')) { // non-empty array
         while (true) {
           float v = 0.0f;
-          if (!parseFloat(p, v)) return false;
+          if (!prv_parse_float(p, v)) return false;
           cfg.params.push_back(v);
-          skipSpaces(p);
-          if (consumeChar(p, ']')) break;
-          if (!consumeChar(p, ',')) return false;
+          prv_skip_spaces(p);
+          if (prv_consume_char(p, ']')) break;
+          if (!prv_consume_char(p, ',')) return false;
         }
       }
     } else {
       // Unknown key, skip value (simple skip for string or number)
-      skipSpaces(p);
+      prv_skip_spaces(p);
       if (*p == '"') {
         std::string dummy;
-        if (!parseQuotedString(p, dummy)) return false;
+        if (!prv_parse_quoted_string(p, dummy)) return false;
       } else {
         float dummy;
-        if (!parseFloat(p, dummy)) return false;
+        if (!prv_parse_float(p, dummy)) return false;
       }
     }
   }

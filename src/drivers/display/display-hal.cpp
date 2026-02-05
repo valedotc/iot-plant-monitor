@@ -1,5 +1,5 @@
-// display_hal.cpp
-#include "drivers/display/display_hal.h"
+// display-hal.cpp
+#include "drivers/display/display-hal.h"
 #include <cstdarg>
 
 namespace PlantMonitor {
@@ -17,7 +17,7 @@ bool DisplayHAL::begin() {
     Wire.begin();
     Wire.setClock(Config::I2C_FREQUENCY);
     
-    // IMPORTANTE: passa true come secondo parametro per reset
+    // IMPORTANT: pass true as second parameter for reset
     if (!m_display.begin(Config::DISPLAY_I2C_ADDR, true)) {
         Serial.println("[DisplayHAL] ERROR: SH1107 initialization failed!");
         return false;
@@ -42,7 +42,7 @@ void DisplayHAL::update() {
 }
 
 void DisplayHAL::setBrightness(uint8_t level) {
-    // SH1107 supporta contrasto 0-255
+    // SH1107 supports contrast 0-255
     m_display.setContrast(level);
     Serial.printf("[DisplayHAL] Contrast set to %d/255\n", level);
 }
