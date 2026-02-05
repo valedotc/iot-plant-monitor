@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "drivers/sensors/moisture-sensor/moisture_sensor_hal.h"
-#include "drivers/sensors/moisture-sensor/moisture_sensor_hal.cpp"
+#include "drivers/sensors/moisture-sensor/moisture-sensor-hal.h"
+#include "drivers/sensors/moisture-sensor/moisture-sensor-hal.cpp"
 
 using namespace PlantMonitor::Drivers;
 
