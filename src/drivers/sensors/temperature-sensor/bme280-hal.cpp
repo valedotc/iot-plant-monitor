@@ -1,12 +1,12 @@
-#include "bme280_hal.h"
+#include "bme280-hal.h"
 
 namespace PlantMonitor {
 namespace Drivers {
 
-bme280HAL::bme280HAL() {
+Bme280Hal::Bme280Hal() {
 }
 
-bool bme280HAL::begin() {
+bool Bme280Hal::begin() {
     if (!bme.begin(0x76, &Wire)) {
         Serial.print("[ BME ] Error: not found!");
         return false;
@@ -14,19 +14,19 @@ bool bme280HAL::begin() {
     return true;
 }
 
-float bme280HAL::readTemperature() {
+float Bme280Hal::readTemperature() {
     return bme.readTemperature();
 }
 
-float bme280HAL::readHumidity() {
+float Bme280Hal::readHumidity() {
     return bme.readHumidity();
 }
 
-float bme280HAL::readAltitude() {
+float Bme280Hal::readAltitude() {
     return bme.readAltitude(SEALEVELPRESSURE_HPA);
 }
 
-float bme280HAL::readPressure() {
+float Bme280Hal::readPressure() {
     return bme.readPressure() / 100.0F;
 }
 } // namespace Drivers

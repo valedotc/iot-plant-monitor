@@ -1,4 +1,4 @@
-#include "moving_average.h"
+#include "moving-average.h"
 #include <numeric>
 
 namespace PlantMonitor {

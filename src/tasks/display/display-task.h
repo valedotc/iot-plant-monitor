@@ -10,12 +10,12 @@ namespace Tasks {
  * \brief UI modes handled by the display FSM
  */
 enum class UiState {
-    BOOT,
-    PAIRING,
-    FACE_IDLE,
-    PAGE_TEMPERATURE,
-    PAGE_HUMIDITY,
-    PAGE_MOISTURE
+    UI_STATE_BOOT,
+    UI_STATE_PAIRING,
+    UI_STATE_FACE_IDLE,
+    UI_STATE_PAGE_TEMPERATURE,
+    UI_STATE_PAGE_HUMIDITY,
+    UI_STATE_PAGE_MOISTURE
 };
 
 /*!

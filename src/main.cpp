@@ -1,8 +1,8 @@
 
 #include <Arduino.h>
-#include "tasks/sensor/sensor_task.h"
-#include "tasks/iot/iot_task.h"
-#include "tasks/display/display_task.h"
+#include "tasks/sensor/sensor-task.h"
+#include "tasks/iot/iot-task.h"
+#include "tasks/display/display-task.h"
 #include "utils/configuration/config.h"
 
 using namespace PlantMonitor;

@@ -1,13 +1,13 @@
-// display_hal.h
+// display-hal.h
 #pragma once
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
 #include <Wire.h>
-#include "app_config.h"
+#include "app-config.h"
 
 /*!
- * \file display_hal.h
+ * \file display-hal.h
  * \brief Hardware abstraction layer for SH1107 OLED display
  * 
  * This class handles low-level display operations only.
@@ -19,7 +19,7 @@
 namespace PlantMonitor {
 namespace Drivers {
 
-// Costanti per colori monocromatici
+// Constants for monochrome colors
 constexpr uint16_t COLOR_BLACK = SH110X_BLACK;
 constexpr uint16_t COLOR_WHITE = SH110X_WHITE;
 

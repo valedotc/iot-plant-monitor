@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <functional>
-#include "app_config.h"
+#include "app-config.h"
 
 namespace PlantMonitor {
 namespace Drivers {

@@ -1,4 +1,4 @@
-#include "moisture_sensor_hal.h"
+#include "moisture-sensor-hal.h"
 
 namespace PlantMonitor {
 namespace Drivers {

@@ -1,4 +1,4 @@
-#include "bluetooth_hal.h"
+#include "bluetooth-hal.h"
 
 
 // --- UUIDs (keep them stable) ---

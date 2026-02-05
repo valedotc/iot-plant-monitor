@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/moving-average/moving_average.h"
+#include "utils/moving-average/moving-average.h"
 
 /*!
  * \file derivative_filter.h
