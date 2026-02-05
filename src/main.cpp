@@ -22,25 +22,25 @@ void setup() {
     Serial.println("=====================================");
     
     // NOTE: Uncomment to reset configuration during development
-    ConfigHandler::clear();
-    Serial.println("[DEV] Configuration cleared");
+    // ConfigHandler::clear();
+    // Serial.println("[DEV] Configuration cleared");
     
     Tasks::startDisplayTask(
         4096,
         3,  //Highest priority
-        1   // Core 1
+        0   // Core 0
     );
 
     Tasks::startIoTTask(
         8192,
         1,  //Low priority
-        0   // Core 0
+        1   // Core 1 - Keeps WiFi/BLE operations separate from Core 0 to prevent watchdog triggers
     );
 
     Tasks::startSensorTask(
         4096,
         2,  //Medium priority
-        0   // Core 0
+        1   // Core 0
     );
 
     Serial.println("[INIT] System ready\n");

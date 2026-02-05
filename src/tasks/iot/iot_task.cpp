@@ -11,6 +11,7 @@
 
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
+#include <esp_task_wdt.h>
 
 using namespace PlantMonitor::IoT;
 using namespace PlantMonitor::Drivers;
@@ -375,10 +376,12 @@ static bool initializeMqttService() {
     if (!tlsClient) {
         tlsClient = new WiFiClientSecure();
         tlsClient->setCACert(HIVEMQ_ROOT_CA);
-        tlsClient->setTimeout(10);
 
         Serial.println("[MQTT] Testing TLS connection...");
-        vTaskDelay(pdMS_TO_TICKS(10));
+
+        //avoid triggering watchdog during TLS handshake
+        esp_task_wdt_reset();
+
         if (!tlsClient->connect(MQTT_BROKER, MQTT_PORT)) {
             Serial.println("[MQTT] TLS test failed");
             delete tlsClient;
