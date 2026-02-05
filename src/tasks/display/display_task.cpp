@@ -2,12 +2,13 @@
 
 #include "drivers/display/display_hal.h"
 #include "../sensor/sensor_task.h"
-#include "drivers/sensors/button-sensor/button_sensor.h"  
+#include "drivers/sensors/button-sensor/button_sensor_hal.h"  
 #include "utils/bitmap/bluetooth_icon.h"
 
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+#define SWITCH_PIN 32
 
 using namespace PlantMonitor::Drivers;
 
@@ -29,9 +30,7 @@ static uint32_t lastInteraction = 0;
 
 static QueueHandle_t uiEventQueue = nullptr;
 
-static PlantMonitor::Drivers::ButtonHal button;
-
-
+PlantMonitor::Drivers::ButtonHal *_button = nullptr;
 
 /*!
  * \brief ISR callback for boot button press
@@ -46,14 +45,6 @@ static void IRAM_ATTR onBootButtonPressed() {
             portYIELD_FROM_ISR();
         }
     }
-}
-
-/*!
- * \brief Initialize the boot button with interrupt
- */
-static void initButton() {
-    pinMode(32, INPUT_PULLUP);
-    attachInterrupt(32, onBootButtonPressed, FALLING);
 }
 
 // ============================================================================
@@ -314,7 +305,7 @@ static void DisplayTask(void*) {
 
     uiEventQueue = xQueueCreate(5, sizeof(uint8_t));
 
-    initButton();
+    _button = new PlantMonitor::Drivers::ButtonHal(SWITCH_PIN, BUTTON_INPUT_PULLUP, onBootButtonPressed);
 
     if (!ConfigHandler::isConfigured()) {
         currentState = UiState::PAIRING;
@@ -327,7 +318,7 @@ static void DisplayTask(void*) {
         uint32_t now = millis();
 
         if (xQueueReceive(uiEventQueue, &evt, 0) == pdTRUE) {
-            if(button.debouncing()){
+            if(_button->debouncing()){
                 currentState = nextState(currentState);
                 lastInteraction = now;
             }
