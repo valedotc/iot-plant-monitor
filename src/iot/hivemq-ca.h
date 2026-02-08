@@ -1,6 +1,15 @@
 #pragma once
 
-// Let's Encrypt ISRG Root X1 (commonly used by HiveMQ Cloud)
+/*!
+ * \file hivemq-ca.h
+ * \brief HiveMQ Cloud Root CA certificate
+ *
+ * This file contains the PEM-encoded root CA certificate for HiveMQ Cloud.
+ * It is used to establish a secure TLS connection to the HiveMQ MQTT broker.
+ *
+ * The certificate is defined as a raw string literal for easy inclusion in the code.
+ */
+
 static const char *HIVEMQ_ROOT_CA = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw

@@ -15,6 +15,11 @@
  * users must provide their own synchronization (e.g., mutexes) to protect WiFi library calls.
  */
 
+#define WIFI_CONNECTION_TIMEOUT_MS 30000 //!< Default WiFi connection timeout in milliseconds
+#define WIFI_RETRY_DELAY_MS 500          //!< Default delay between connection attempts in milliseconds
+#define WIFI_MAX_RETRIES 20              //!< Default maximum number of connection attempts
+#define WIFI_MAX_SCAN_NETWORKS 10        //!< Default maximum number of WiFi networks to return from scan
+
 namespace PlantMonitor {
 namespace Drivers {
 
@@ -23,9 +28,9 @@ namespace Drivers {
  * \brief Information about a scanned WiFi network
  */
 struct WiFiNetwork {
-    String ssid;      //!< Network name
-    int32_t rssi;     //!< Signal strength in dBm
-    bool secure;      //!< true if network requires password
+    String ssid;  //!< Network name
+    int32_t rssi; //!< Signal strength in dBm
+    bool secure;  //!< true if network requires password
 };
 
 /*!
@@ -43,8 +48,7 @@ class WiFiHal {
      * \param max_attempts Maximum connection attempts
      * \param retry_delay_ms Delay between retry attempts in milliseconds
      */
-    WiFiHal(const char* ssid, const char* password, 
-            int max_attempts = 20, int retry_delay_ms = 500);
+    WiFiHal(const char *ssid, const char *password, int max_attempts = WIFI_MAX_RETRIES, int retry_delay_ms = WIFI_RETRY_DELAY_MS);
 
     /*!
      * \brief Destructor
@@ -92,13 +96,13 @@ class WiFiHal {
      * \note This is a static method - can be called without an instance
      * \note Scan takes approximately 2-4 seconds
      */
-    static std::vector<WiFiNetwork> scanNetworks(size_t maxNetworks = 10);
+    static std::vector<WiFiNetwork> scanNetworks(size_t maxNetworks = WIFI_MAX_SCAN_NETWORKS);
 
   private:
-    const char* m_ssid;            //!< WiFi SSID
-    const char* m_password;        //!< WiFi password
-    int m_max_attempts;            //!< Maximum connection attempts
-    int m_retry_delay_ms;          //!< Retry delay in milliseconds
+    const char *m_ssid;     //!< WiFi SSID
+    const char *m_password; //!< WiFi password
+    int m_max_attempts;     //!< Maximum connection attempts
+    int m_retry_delay_ms;   //!< Retry delay in milliseconds
 
     /*!
      * \brief Wait for valid IP address assignment
@@ -107,8 +111,8 @@ class WiFiHal {
     bool waitForValidIP();
 
     // Prevent copying
-    WiFiHal(const WiFiHal&) = delete;
-    WiFiHal& operator=(const WiFiHal&) = delete;
+    WiFiHal(const WiFiHal &) = delete;
+    WiFiHal &operator=(const WiFiHal &) = delete;
 };
 
 } // namespace Drivers

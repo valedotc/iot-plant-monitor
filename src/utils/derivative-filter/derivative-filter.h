@@ -5,6 +5,10 @@
  * \file derivative_filter.h
  * \brief Derivative filter with optional input smoothing
  */
+
+#define DERIVATIVE_FILTER_DEFAULT_SCALE (1.0f) //!< Default scaling factor for derivative filter
+#define DERIVATIVE_FILTER_DEFAULT_SMOOTH_WINDOW (0u) //!< Default moving average window size (0 = no smoothing)
+
 namespace PlantMonitor {
 namespace Utils {
 /*!
@@ -18,7 +22,7 @@ public:
      * \param scale Scaling factor for the derivative (typically 1/dt)
      * \param smooth_window Size of moving average window (0 = no smoothing)
      */
-    explicit DerivativeFilter(float scale = 1.0f, size_t smooth_window = 0);
+    explicit DerivativeFilter(float scale = DERIVATIVE_FILTER_DEFAULT_SCALE, size_t smooth_window = DERIVATIVE_FILTER_DEFAULT_SMOOTH_WINDOW);
 
     /*!
      * \brief Destructor

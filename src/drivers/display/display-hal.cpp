@@ -5,10 +5,10 @@
 namespace PlantMonitor {
 namespace Drivers {
 
-DisplayHAL::DisplayHAL() 
-    : m_display(Config::DISPLAY_WIDTH, 
-                Config::DISPLAY_HEIGHT, 
-                &Wire, 
+DisplayHAL::DisplayHAL()
+    : m_display(Config::DISPLAY_WIDTH,
+                Config::DISPLAY_HEIGHT,
+                &Wire,
                 Config::DISPLAY_RESET_PIN),
       m_initialized(false) {
 }
@@ -16,20 +16,20 @@ DisplayHAL::DisplayHAL()
 bool DisplayHAL::begin() {
     Wire.begin();
     Wire.setClock(Config::I2C_FREQUENCY);
-    
+
     // IMPORTANT: pass true as second parameter for reset
     if (!m_display.begin(Config::DISPLAY_I2C_ADDR, true)) {
         Serial.println("[DisplayHAL] ERROR: SH1107 initialization failed!");
         return false;
     }
-    
+
     m_display.setRotation(0);
     m_display.clearDisplay();
     m_display.display();
-    
+
     m_initialized = true;
     Serial.println("[DisplayHAL] SH1107 initialized successfully");
-    
+
     return true;
 }
 
@@ -53,7 +53,7 @@ void DisplayHAL::drawPixel(int16_t x, int16_t y, uint16_t color) {
     m_display.drawPixel(x, y, color);
 }
 
-void DisplayHAL::drawBitmap(const uint8_t* bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void DisplayHAL::drawBitmap(const uint8_t *bitmap, int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
     m_display.drawBitmap(x, y, bitmap, w, h, color);
 }
 
@@ -77,13 +77,11 @@ void DisplayHAL::fillCircle(int16_t x, int16_t y, int16_t r, uint16_t color) {
     m_display.fillCircle(x, y, r, color);
 }
 
-void DisplayHAL::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                              int16_t x2, int16_t y2, uint16_t color) {
+void DisplayHAL::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) {
     m_display.drawTriangle(x0, y0, x1, y1, x2, y2, color);
 }
 
-void DisplayHAL::fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                              int16_t x2, int16_t y2, uint16_t color) {
+void DisplayHAL::fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) {
     m_display.fillTriangle(x0, y0, x1, y1, x2, y2, color);
 }
 
@@ -101,11 +99,11 @@ void DisplayHAL::setTextSize(uint8_t size) {
     m_display.setTextSize(size);
 }
 
-void DisplayHAL::print(const char* text) {
+void DisplayHAL::print(const char *text) {
     m_display.print(text);
 }
 
-void DisplayHAL::printf(const char* format, ...) {
+void DisplayHAL::printf(const char *format, ...) {
     char buffer[128];
     va_list args;
     va_start(args, format);
@@ -114,8 +112,7 @@ void DisplayHAL::printf(const char* format, ...) {
     m_display.print(buffer);
 }
 
-void DisplayHAL::getTextBounds(const char* text, int16_t x, int16_t y,
-                               int16_t* x1, int16_t* y1, uint16_t* w, uint16_t* h) {
+void DisplayHAL::getTextBounds(const char *text, int16_t x, int16_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h) {
     m_display.getTextBounds(text, x, y, x1, y1, w, h);
 }
 

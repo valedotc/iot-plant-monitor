@@ -11,7 +11,7 @@ class NimBLECharacteristic;
 namespace PlantMonitor {
 namespace Drivers {
 
-    /*!
+/*!
     * \file bluetooth_hal.h   
     * \brief BLE UART-like HAL built on top of NimBLE-Arduino.
     *
@@ -29,114 +29,110 @@ namespace Drivers {
     * \note This class is designed as a lightweight HAL; higher-level protocols
     *       (framing, JSON, commands, ACKs, etc.) should live above it.
     */
-    class BleUartHal {
-    
-        public:
-            BleUartHal();
-            ~BleUartHal();
+class BleUartHal {
 
-            using Bytes = std::vector<uint8_t>;
-            using RxHandler = std::function<void(const Bytes&)>;
+  public:
+    BleUartHal();
+    ~BleUartHal();
 
-            /**
+    using Bytes = std::vector<uint8_t>;
+    using RxHandler = std::function<void(const Bytes &)>;
+
+    /**
              * \brief Starts advertising, meaning it becomes visible by others devices
              * \param deviceName This is the name seen by other devices
              * \return
              */
-            bool begin(const char* deviceName);
+    bool begin(const char *deviceName);
 
-            /**
+    /**
              *  \warning NOT IMPLEMENTED
              *  \brief Should end the connection peacefully and managing potential issues
              */
-            void end();
+    void end();
 
-            /**
+    /**
              * \brief Checks if the device is connected 
              * \return Connection status 
              */
-            bool isConnected() const;
+    bool isConnected() const;
 
-            /**
+    /**
              * \brief Simple function that handles message sending
              * \param data a pointer to data
              * \param len size of data
              * \return Success of message's delivery 
              */
-            bool send(const uint8_t* data, size_t len);
+    bool send(const uint8_t *data, size_t len);
 
-            /**
+    /**
              * \brief A wrapper for strings of send()
              */
-            bool sendText(const std::string& text);
+    bool sendText(const std::string &text);
 
-            /**
+    /**
              * \brief Send large data in chunks to avoid BLE MTU limits
              * \param data pointer to data
              * \param len size of data
              * \param chunkSize max bytes per chunk (default 240, safe under most MTU)
              * \return true if all chunks sent successfully
              */
-            bool sendChunked(const uint8_t* data, size_t len, size_t chunkSize = 240);
+    bool sendChunked(const uint8_t *data, size_t len, size_t chunkSize = 240);
 
-            /**
+    /**
              * \brief A wrapper for strings of sendChunked()
              */
-            bool sendTextChunked(const std::string& text);
+    bool sendTextChunked(const std::string &text);
 
-            /**
+    /**
              * \brief Setter for a function that should handle RX receiving
              * \param cb void function(uint8_t* data)
              */
-            void setRxHandler(RxHandler cb);
-            
-            // Internal event handlers called by callbacks
+    void setRxHandler(RxHandler cb);
 
-            /**
+    // Internal event handlers called by callbacks
+
+    /**
              * \brief Connected status turned on
              */
-            void onConnect_();
+    void onConnect_();
 
-            /**
+    /**
              * \brief Connected status turned off, going back to advertising
              */
-            void onDisconnect_();
+    void onDisconnect_();
 
-            /**
+    /**
              * \brief Handles receiving data safely
              * \param data characteristic value
              * \param len size of data
              */
-            void onRxWrite_(const uint8_t* data, size_t len);
+    void onRxWrite_(const uint8_t *data, size_t len);
 
-            /**
+    /**
              * \brief Starts advertising (making him visible and ready for a connection)
              */
-            bool startAdvertising_();
+    bool startAdvertising_();
 
-
-            /**
+    /**
              * \brief set ADVauto restarting
              */
-            void setAutoRestartingADV(bool enable);
-            
-    
-        private:
-            // Internal state
-            bool connected_ = false;
-            bool autoRestartAdv = true;
-            RxHandler rxHandler_;
+    void setAutoRestartingADV(bool enable);
 
-            // Forward declare NimBLE types (keep NimBLE includes in .cpp)
-            ::NimBLEServer* server_ = nullptr;
-            ::NimBLECharacteristic* txChar_ = nullptr;
+  private:
+    // Internal state
+    bool connected_ = false;
+    bool autoRestartAdv = true;
+    RxHandler rxHandler_;
 
-            // Prevent copying the object
-            BleUartHal(const BleUartHal&) = delete;
-            BleUartHal& operator=(const BleUartHal&) = delete;
-    };
+    // Forward declare NimBLE types (keep NimBLE includes in .cpp)
+    ::NimBLEServer *server_ = nullptr;
+    ::NimBLECharacteristic *txChar_ = nullptr;
 
+    // Prevent copying the object
+    BleUartHal(const BleUartHal &) = delete;
+    BleUartHal &operator=(const BleUartHal &) = delete;
+};
 
 } // namespace Drivers
 } // namespace PlantMonitor
-

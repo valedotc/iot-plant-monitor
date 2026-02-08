@@ -1,14 +1,16 @@
 #include <stdlib.h>
 
-// Filename: Display 128x128.png
-// Filesize: 4008 Bytes
+/*!
+ * \file bluetooth-icon.h
+ * \brief Bitmap data for Bluetooth icon
+ */
 
-// Size bitmap: 2048 bytes
+#define BLUETOOTH_ICON_IMAGE_WIDTH 128 //!< Image width in pixels
+#define BLUETOOTH_ICON_IMAGE_HEIGHT 128 //!< Image height in pixels
 
-#define BLUETOOTH_ICON_IMAGE_WIDTH 128
-#define BLUETOOTH_ICON_IMAGE_HEIGHT 128
-
-// 'Display 128x128', 128x128px
+/*!
+ * \brief Bitmap data for Bluetooth icon (1-bit monochrome)
+ */
 const uint8_t bluetooth_icon_bmp [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 

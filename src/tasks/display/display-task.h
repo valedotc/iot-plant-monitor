@@ -27,8 +27,7 @@ enum class UiState {
 void startDisplayTask(
     uint32_t stackSize = 4096,
     UBaseType_t priority = 3,
-    BaseType_t core = 1
-);
+    BaseType_t core = 1);
 
 /*!
  * \brief Notifies the display task of a button press

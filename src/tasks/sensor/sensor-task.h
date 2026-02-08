@@ -1,26 +1,47 @@
 #pragma once
-
 #include <Arduino.h>
+
+/*!
+ * \file sensor-task.h
+ * \brief Task for reading and processing sensor data
+ * 
+ * This task is responsible for periodically reading data from the connected sensors (temperature, humidity, soil moisture, light),
+ * processing the data (e.g., applying filters), and making it available to other tasks such as the display and MQTT communication tasks.
+ * 
+ * The task runs in its own FreeRTOS thread and uses a thread-safe mechanism to share the latest sensor data with other tasks.
+ */
 
 namespace PlantMonitor {
 namespace Tasks {
 
+/*!
+ * \struct SensorData
+ * \brief Structure to hold sensor readings
+ */
 struct SensorData {
     float temperature;
     float humidity;
     float moisture;
-    bool  lightDetected;
+    bool lightDetected;
 };
 
-// start task
+/*!
+ * \brief Start the sensor task
+ * \param stackSize Stack size for the task (default: 4096 bytes)
+ * \param priority Task priority (default: 2)
+ * \param core Core to pin the task to (default: 0)
+ */
 void startSensorTask(
     uint32_t stackSize = 4096,
     UBaseType_t priority = 2,
-    BaseType_t core = 0
-);
+    BaseType_t core = 0);
 
-// Get thread safe latest sensor data
-bool getLatestSensorData(SensorData& out);
+/*!
+ * \brief Get the latest sensor data in a thread-safe manner
+ * \param out Reference to SensorData structure to populate
+ * \return true if data was successfully retrieved, false otherwise
+ */
+bool getLatestSensorData(SensorData &out);
 
 } // namespace Tasks
 } // namespace PlantMonitor
