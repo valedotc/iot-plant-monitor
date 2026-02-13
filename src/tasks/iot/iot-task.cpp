@@ -64,7 +64,6 @@ enum class SystemState {
 struct SystemContext {
     SystemState currentState;
     int deviceId;
-    uint32_t lastMqttPublish;
     uint32_t wifiConnectStart;
     uint32_t mqttInitRetries;
     uint32_t configLoadFailures;
@@ -80,6 +79,8 @@ struct SystemContext {
     uint32_t wifiTestStart;
     WiFiHal* testWifi = nullptr;
     int lastProgressSent;
+
+    PlantMonitor::Utils::PeriodicSendTimer sendTimer;
 };
 
 struct BleMessage {
@@ -608,6 +609,10 @@ static SystemState prv_handle_wifi_connecting() {
 static SystemState prv_handle_mqtt_operating() {
     if (iot_task_wifi_manager && !iot_task_wifi_manager->isConnected()) {
         Serial.println("[WIFI] Connection lost");
+
+        iot_task_ctx.sendTimer.stop();
+        Serial.println("[TIMER] Send timer stopped");
+
         delete iot_task_wifi_manager;
         iot_task_wifi_manager = nullptr;
         
@@ -648,13 +653,19 @@ static SystemState prv_handle_mqtt_operating() {
         
         iot_task_ctx.mqttInitRetries = 0;
         Serial.println("[MQTT] Connected!");
+        
+        //avvio il timer perchè sono connesso a internet
+        if (!iot_task_ctx.sendTimer.isRunning()) {
+            iot_task_ctx.sendTimer.begin(15UL * 60UL * 1000UL);  // 15 minuti
+            Serial.println("[TIMER] Send timer started");
+        }
     }
     
     iot_task_mqtt_service->poll();
     
-    uint32_t now = millis();
-    if (now - iot_task_ctx.lastMqttPublish >= MQTT_PUB_INTERVAL_MS) {
-        iot_task_ctx.lastMqttPublish = now;
+    //controllo la flag e pubblico telemetry
+    if (iot_task_ctx.sendTimer.take()) {
+        Serial.println("[TIMER] Time to publish telemetry");
         prv_publish_telemetry();
     }
     
