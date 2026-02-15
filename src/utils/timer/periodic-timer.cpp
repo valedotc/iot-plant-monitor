@@ -9,10 +9,23 @@ PeriodicSendTimer::PeriodicSendTimer()
     , m_running(false)
     , m_due(false)
     , m_count(0)
-    , m_mux(portMUX_INITIALIZER_UNLOCKED) {}
+    , m_mutex(nullptr) {
+    
+    // ✅ Crea semaforo binario
+    m_mutex = xSemaphoreCreateBinary();
+    if (m_mutex) {
+        xSemaphoreGive(m_mutex);  // Inizializza come "disponibile"
+    }
+}
 
 PeriodicSendTimer::~PeriodicSendTimer() {
     end();
+    
+    // ✅ Distruggi semaforo
+    if (m_mutex) {
+        vSemaphoreDelete(m_mutex);
+        m_mutex = nullptr;
+    }
 }
 
 bool PeriodicSendTimer::begin(uint32_t period_ms, bool start_now) {
@@ -22,6 +35,16 @@ bool PeriodicSendTimer::begin(uint32_t period_ms, bool start_now) {
     m_due = false;
     m_count = 0;
     m_running = false;
+    
+    // ✅ Ricrea semaforo se necessario
+    if (!m_mutex) {
+        m_mutex = xSemaphoreCreateBinary();
+        if (m_mutex) {
+            xSemaphoreGive(m_mutex);
+        } else {
+            return false;  // Fallimento creazione semaforo
+        }
+    }
     
     esp_timer_create_args_t args = {};
     args.callback = &PeriodicSendTimer::timerThunk;
@@ -74,28 +97,44 @@ bool PeriodicSendTimer::isRunning() const {
 }
 
 bool PeriodicSendTimer::take() {
+    if (!m_mutex) return false;
+    
     bool ret = false;
-    portENTER_CRITICAL(&m_mux);
-    if (m_due) {
-        m_due = false;
-        ret = true;
+    
+    // ✅ Prendi semaforo (max 10ms di attesa)
+    if (xSemaphoreTake(m_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        if (m_due) {
+            m_due = false;
+            ret = true;
+        }
+        xSemaphoreGive(m_mutex);  // ✅ Rilascia semaforo
     }
-    portEXIT_CRITICAL(&m_mux);
+    
     return ret;
 }
 
 bool PeriodicSendTimer::peek() const {
-    bool ret;
-    portENTER_CRITICAL(&m_mux);
-    ret = m_due;
-    portEXIT_CRITICAL(&m_mux);
+    if (!m_mutex) return false;
+    
+    bool ret = false;
+    
+    // ✅ Prendi semaforo
+    if (xSemaphoreTake(m_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        ret = m_due;
+        xSemaphoreGive(m_mutex);
+    }
+    
     return ret;
 }
 
 void PeriodicSendTimer::clear() {
-    portENTER_CRITICAL(&m_mux);
-    m_due = false;
-    portEXIT_CRITICAL(&m_mux);
+    if (!m_mutex) return;
+    
+    // ✅ Prendi semaforo
+    if (xSemaphoreTake(m_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        m_due = false;
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 bool PeriodicSendTimer::setPeriodMs(uint32_t period_ms) {
@@ -115,10 +154,16 @@ uint32_t PeriodicSendTimer::periodMs() const {
 }
 
 uint64_t PeriodicSendTimer::fireCount() const {
-    uint64_t c;
-    portENTER_CRITICAL(&m_mux);  
-    c = m_count;
-    portEXIT_CRITICAL(&m_mux);
+    if (!m_mutex) return 0;
+    
+    uint64_t c = 0;
+    
+    // ✅ Prendi semaforo
+    if (xSemaphoreTake(m_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        c = m_count;
+        xSemaphoreGive(m_mutex);
+    }
+    
     return c;
 }
 
@@ -128,10 +173,19 @@ void PeriodicSendTimer::timerThunk(void* arg) {
 }
 
 void PeriodicSendTimer::onTimer() {
-    portENTER_CRITICAL(&m_mux);
-    m_due = true;
-    m_count++;
-    portEXIT_CRITICAL(&m_mux);
+    if (!m_mutex) return;
+    
+    // ✅ Usa xSemaphoreTakeFromISR se necessario
+    // Ma con ESP_TIMER_TASK (non ISR), possiamo usare normale Take
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    // ✅ IMPORTANTE: ESP_TIMER_TASK significa che NON siamo in ISR,
+    // quindi possiamo usare xSemaphoreTake normale
+    if (xSemaphoreTake(m_mutex, 0) == pdTRUE) {
+        m_due = true;
+        m_count++;
+        xSemaphoreGive(m_mutex);
+    }
 }
 
 } // namespace Utils

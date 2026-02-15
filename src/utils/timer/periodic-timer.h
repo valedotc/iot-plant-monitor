@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/portmacro.h"
+#include "freertos/semphr.h" 
 
 namespace PlantMonitor {
 namespace Utils {
@@ -38,7 +38,7 @@ private:
     bool m_due;
     uint64_t m_count;
     
-    mutable portMUX_TYPE m_mux;  // mutable per const methods
+    SemaphoreHandle_t m_mutex; 
 };
 
 } // namespace Utils
