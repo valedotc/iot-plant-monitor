@@ -105,7 +105,7 @@ class MqttService {
     void setMessageCallback(MqttMessageCallback callback);
 
   private:
-    WiFiClientSecure *m_wifi_client;              //!< WiFi SSL client pointer
+    WiFiClientSecure *m_wifi_client;           //!< WiFi SSL client pointer
     std::unique_ptr<MqttClient> m_mqtt_client; //!< MQTT client pointer
     const char *m_broker;                      //!< MQTT broker address
     int m_port;                                //!< MQTT broker port

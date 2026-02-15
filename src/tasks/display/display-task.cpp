@@ -5,7 +5,6 @@
 #include "drivers/sensors/button-sensor/button-sensor-hal.h"
 #include "utils/bitmap/bluetooth-icon.h"
 
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #define SWITCH_PIN 32
@@ -18,11 +17,11 @@ namespace Tasks {
 /*! \defgroup DisplayTiming Display Timing Configuration
  *  @{
  */
-#define UI_UPDATE_INTERVAL_MS 100   /*!< UI refresh interval in milliseconds */
-#define UI_PAGE_TIMEOUT_MS   10000   /*!< Page timeout before returning to idle */
+#define UI_UPDATE_INTERVAL_MS 100 /*!< UI refresh interval in milliseconds */
+#define UI_PAGE_TIMEOUT_MS 10000  /*!< Page timeout before returning to idle */
 /*! @} */
 
-static DisplayHAL* display_task_driver = nullptr;
+static DisplayHAL *display_task_driver = nullptr;
 static UiState display_task_current_state = UiState::UI_STATE_BOOT;
 
 static uint32_t display_task_last_ui_update = 0;
@@ -48,29 +47,29 @@ static void IRAM_ATTR prv_on_boot_button_pressed() {
 }
 
 // ============================================================================
-// UI RENDERING - Professional IoT Display (128x128)
+// UI RENDERING - IoT Display (128x128)
 // ============================================================================
 
 /*! \defgroup UI_Layout Display Layout Constants
  *  @{
  */
-#define HEADER_Y        8      // Header vertical position
-#define VALUE_Y         64     // Main value vertical position (centered)
-#define UNIT_Y          90     // Unit text vertical position
-#define ICON_SIZE       32     // Icon/symbol size
-#define ICON_X          64     // Icon horizontal center position
+#define HEADER_Y 8   // Header vertical position
+#define VALUE_Y 64   // Main value vertical position (centered)
+#define UNIT_Y 90    // Unit text vertical position
+#define ICON_SIZE 32 // Icon/symbol size
+#define ICON_X 64    // Icon horizontal center position
 /*! @} */
 
 /*!
  * \brief Draw a centered header with consistent styling
  * \param text Header text to display
  */
-static void prv_draw_header(const char* text) {
+static void prv_draw_header(const char *text) {
     display_task_driver->setTextSize(1);
     int16_t x = (128 - strlen(text) * 6) / 2; // Center text (6px per char)
     display_task_driver->setCursor(x, HEADER_Y);
     display_task_driver->printf("%s", text);
-    
+
     // Subtle divider line
     display_task_driver->drawLine(16, 24, 112, 24, COLOR_WHITE);
 }
@@ -81,28 +80,28 @@ static void prv_draw_header(const char* text) {
  * \param unit Unit string (e.g., "°C", "%", "")
  * \param decimals Number of decimal places
  */
-static void prv_draw_centered_value(float value, const char* unit, uint8_t decimals = 1) {
+static void prv_draw_centered_value(float value, const char *unit, uint8_t decimals = 1) {
     char buffer[16];
-    
+
     // Format value
     snprintf(buffer, sizeof(buffer), "%.*f", decimals, value);
-    
+
     // Draw large value (centered)
     display_task_driver->setTextSize(3);
     int16_t valueWidth = strlen(buffer) * 18;
     int16_t valueX = (128 - valueWidth) / 2;
     display_task_driver->setCursor(valueX, VALUE_Y);
     display_task_driver->printf("%s", buffer);
-    
+
     if (unit && (unit[0] == 'C' || unit[0] == 'F')) {
         // Calculate width of "°C" (circle + letter)
-        int16_t unitTotalWidth = 6 + 12;  // circle(6px space) + C(12px)
+        int16_t unitTotalWidth = 6 + 12; // circle(6px space) + C(12px)
         int16_t unitStartX = (128 - unitTotalWidth) / 2;
-        
+
         int16_t degX = unitStartX + 3;
         int16_t degY = UNIT_Y + 4;
         display_task_driver->drawCircle(degX, degY, 3, COLOR_WHITE);
-        
+
         display_task_driver->setTextSize(2);
         display_task_driver->setCursor(unitStartX + 8, UNIT_Y);
         display_task_driver->printf("%c", unit[0]);
@@ -135,11 +134,12 @@ static void prv_draw_droplet_icon() {
     // Simple droplet shape using filled triangle + circle
     display_task_driver->fillCircle(ICON_X, 46, 7, COLOR_WHITE);
     display_task_driver->fillTriangle(
-        ICON_X, 32,      // top point
-        ICON_X - 7, 46,  // bottom left
-        ICON_X + 7, 46,  // bottom right
-        COLOR_WHITE
-    );
+        ICON_X, 32, // top point
+        ICON_X - 7,
+        46, // bottom left
+        ICON_X + 7,
+        46, // bottom right
+        COLOR_WHITE);
 }
 
 /*!
@@ -149,11 +149,11 @@ static void prv_draw_plant_icon() {
     // Soil line
     display_task_driver->drawLine(ICON_X - 12, 48, ICON_X + 12, 48, COLOR_WHITE);
     display_task_driver->drawLine(ICON_X - 12, 49, ICON_X + 12, 49, COLOR_WHITE);
-    
+
     // Simple plant stem
     display_task_driver->drawLine(ICON_X, 48, ICON_X, 36, COLOR_WHITE);
     display_task_driver->drawLine(ICON_X + 1, 48, ICON_X + 1, 36, COLOR_WHITE);
-    
+
     // Leaves
     display_task_driver->fillCircle(ICON_X - 4, 38, 3, COLOR_WHITE);
     display_task_driver->fillCircle(ICON_X + 5, 40, 3, COLOR_WHITE);
@@ -169,7 +169,7 @@ static void prv_draw_status_indicator(float value, float minGood, float maxGood)
     int16_t indicatorX = 110;
     int16_t indicatorY = 8;
     int16_t radius = 4;
-    
+
     // Determine status color (using filled/empty for monochrome)
     if (value >= minGood && value <= maxGood) {
         display_task_driver->fillCircle(indicatorX, indicatorY, radius, COLOR_WHITE);
@@ -187,14 +187,14 @@ static void prv_draw_status_indicator(float value, float minGood, float maxGood)
  * \brief Draw the temperature page with professional layout
  * \param data Current sensor readings
  */
-static void prv_draw_temperature(const SensorData& data) {
+static void prv_draw_temperature(const SensorData &data) {
     display_task_driver->clear();
-    
+
     prv_draw_header("TEMPERATURE");
     prv_draw_thermometer_icon();
     prv_draw_centered_value(data.temperature, "C", 1);
     prv_draw_status_indicator(data.temperature, 18.0f, 26.0f); // Ideal range: 18-26°C
-    
+
     display_task_driver->update();
 }
 
@@ -202,14 +202,14 @@ static void prv_draw_temperature(const SensorData& data) {
  * \brief Draw the humidity page with professional layout
  * \param data Current sensor readings
  */
-static void prv_draw_humidity(const SensorData& data) {
+static void prv_draw_humidity(const SensorData &data) {
     display_task_driver->clear();
-    
+
     prv_draw_header("HUMIDITY");
     prv_draw_droplet_icon();
     prv_draw_centered_value(data.humidity, "%", 1);
     prv_draw_status_indicator(data.humidity, 40.0f, 70.0f); // Ideal range: 40-70%
-    
+
     display_task_driver->update();
 }
 
@@ -217,12 +217,12 @@ static void prv_draw_humidity(const SensorData& data) {
  * \brief Draw the soil moisture page with professional layout
  * \param data Current sensor readings
  */
-static void prv_draw_moisture(const SensorData& data) {
+static void prv_draw_moisture(const SensorData &data) {
     display_task_driver->clear();
-    
+
     prv_draw_header("SOIL MOISTURE");
     prv_draw_plant_icon();
-    
+
     // Moisture is typically 0-100 scale or raw sensor value
     // Adjust formatting based on your sensor range
     if (data.moisture > 100.0f) {
@@ -230,9 +230,9 @@ static void prv_draw_moisture(const SensorData& data) {
     } else {
         prv_draw_centered_value(data.moisture, "%", 0); // Percentage
     }
-    
+
     prv_draw_status_indicator(data.moisture, 30.0f, 70.0f); // Ideal range: 30-70%
-    
+
     display_task_driver->update();
 }
 
@@ -241,26 +241,25 @@ static void prv_draw_moisture(const SensorData& data) {
  */
 static void prv_draw_face_idle() {
     display_task_driver->clear();
-    
+
     // Large friendly face (centered)
     display_task_driver->setTextSize(4);
     display_task_driver->setCursor(40, 40);
     display_task_driver->printf(":)");
-    
+
     // Status message
     display_task_driver->setTextSize(1);
     int16_t msgX = (128 - 13 * 6) / 2;
     display_task_driver->setCursor(msgX, 100);
     display_task_driver->printf("Plant is fine");
-    
+
     // Optional: Small icon indicators at top
     //display_task_driver->setTextSize(1);
     //display_task_driver->setCursor(4, 4);
     //display_task_driver->printf("[OK]");
-    
+
     display_task_driver->update();
 }
-
 
 /**
  * \brief Draw the Bluetooth icon
@@ -268,7 +267,6 @@ static void prv_draw_face_idle() {
 static void prv_draw_bluetooth_icon() {
     display_task_driver->clear();
     display_task_driver->drawBitmap(bluetooth_icon_bmp);
-
 
     display_task_driver->update();
 }
@@ -280,11 +278,16 @@ static void prv_draw_bluetooth_icon() {
  */
 static UiState prv_next_state(UiState state) {
     switch (state) {
-        case UiState::UI_STATE_FACE_IDLE:        return UiState::UI_STATE_PAGE_TEMPERATURE;
-        case UiState::UI_STATE_PAGE_TEMPERATURE: return UiState::UI_STATE_PAGE_HUMIDITY;
-        case UiState::UI_STATE_PAGE_HUMIDITY:    return UiState::UI_STATE_PAGE_MOISTURE;
-        case UiState::UI_STATE_PAGE_MOISTURE:    return UiState::UI_STATE_FACE_IDLE;
-        default:                        return UiState::UI_STATE_FACE_IDLE;
+        case UiState::UI_STATE_FACE_IDLE:
+            return UiState::UI_STATE_PAGE_TEMPERATURE;
+        case UiState::UI_STATE_PAGE_TEMPERATURE:
+            return UiState::UI_STATE_PAGE_HUMIDITY;
+        case UiState::UI_STATE_PAGE_HUMIDITY:
+            return UiState::UI_STATE_PAGE_MOISTURE;
+        case UiState::UI_STATE_PAGE_MOISTURE:
+            return UiState::UI_STATE_FACE_IDLE;
+        default:
+            return UiState::UI_STATE_FACE_IDLE;
     }
 }
 
@@ -292,7 +295,7 @@ static UiState prv_next_state(UiState state) {
  * \brief Main display task function
  * \param pvParameters Task parameters (unused)
  */
-static void prv_display_task(void*) {
+static void prv_display_task(void *) {
     display_task_driver = new DisplayHAL();
     if (!display_task_driver->begin()) {
         Serial.println("[DISPLAY] Init failed");
@@ -318,7 +321,7 @@ static void prv_display_task(void*) {
         uint32_t now = millis();
 
         if (xQueueReceive(display_task_ui_event_queue, &evt, 0) == pdTRUE) {
-            if(display_task_button->debouncing()){
+            if (display_task_button->debouncing()) {
                 display_task_current_state = prv_next_state(display_task_current_state);
                 display_task_last_interaction = now;
             }
@@ -334,12 +337,23 @@ static void prv_display_task(void*) {
             getLatestSensorData(data);
 
             switch (display_task_current_state) {
-                case UiState::UI_STATE_PAIRING:          prv_draw_bluetooth_icon(); break;
-                case UiState::UI_STATE_FACE_IDLE:        prv_draw_face_idle(); break;
-                case UiState::UI_STATE_PAGE_TEMPERATURE: prv_draw_temperature(data); break;
-                case UiState::UI_STATE_PAGE_HUMIDITY:    prv_draw_humidity(data); break;
-                case UiState::UI_STATE_PAGE_MOISTURE:    prv_draw_moisture(data); break;
-                default: break;
+                case UiState::UI_STATE_PAIRING:
+                    prv_draw_bluetooth_icon();
+                    break;
+                case UiState::UI_STATE_FACE_IDLE:
+                    prv_draw_face_idle();
+                    break;
+                case UiState::UI_STATE_PAGE_TEMPERATURE:
+                    prv_draw_temperature(data);
+                    break;
+                case UiState::UI_STATE_PAGE_HUMIDITY:
+                    prv_draw_humidity(data);
+                    break;
+                case UiState::UI_STATE_PAGE_MOISTURE:
+                    prv_draw_moisture(data);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -355,8 +369,7 @@ void startDisplayTask(uint32_t stackSize, UBaseType_t priority, BaseType_t core)
         nullptr,
         priority,
         nullptr,
-        core
-    );
+        core);
 }
 
 } // namespace Tasks

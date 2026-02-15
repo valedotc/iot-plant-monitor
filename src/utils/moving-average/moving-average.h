@@ -7,7 +7,6 @@
  * \brief Simple moving average filter utility
  */
 
-
 namespace PlantMonitor {
 namespace Utils {
 /*!

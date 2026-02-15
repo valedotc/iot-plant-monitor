@@ -5,6 +5,11 @@
 #include "tasks/display/display-task.h"
 #include "utils/configuration/config.h"
 
+/*!
+ * \file main.cpp
+ * \brief Main entry point for the Plant Monitor System
+ */
+
 using namespace PlantMonitor;
 
 /*!
@@ -20,27 +25,27 @@ void setup() {
     Serial.println("  Plant Monitor System v1.0");
     Serial.println("  ESP32 IoT Monitoring System");
     Serial.println("=====================================");
-    
+
     // NOTE: Uncomment to reset configuration during development
     // ConfigHandler::clear();
     // Serial.println("[DEV] Configuration cleared");
-    
+
     Tasks::startDisplayTask(
         4096,
-        3,  //Highest priority
-        0   // Core 0
+        3, //Highest priority
+        0  // Core 0
     );
 
     Tasks::startIoTTask(
         8192,
-        1,  //Low priority
-        1   // Core 1 - Keeps WiFi/BLE operations separate from Core 0 to prevent watchdog triggers
+        1, //Low priority
+        1  // Core 1 - Keeps WiFi/BLE operations separate from Core 0 to prevent watchdog triggers
     );
 
     Tasks::startSensorTask(
         4096,
-        2,  //Medium priority
-        1   // Core 0
+        2, //Medium priority
+        1  // Core 0
     );
 
     Serial.println("[INIT] System ready\n");

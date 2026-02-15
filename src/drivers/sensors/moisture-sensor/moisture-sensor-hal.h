@@ -8,8 +8,8 @@ namespace PlantMonitor {
 namespace Drivers {
 
 /*!
+ * \class MoistureSensorHAL
  * \brief Hardware Abstraction Layer for the capacitive soil moisture sensor (v1.2)
- *
  * Supports optional mockable analogRead function for unit testing.
  */
 class MoistureSensorHAL {

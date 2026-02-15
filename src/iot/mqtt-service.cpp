@@ -21,9 +21,9 @@ MqttService::MqttService(WiFiClientSecure *wifi_client,
     if (s_instance_mutex == nullptr) {
         s_instance_mutex = xSemaphoreCreateMutex();
     }
-    
+
     m_mutex = xSemaphoreCreateMutex();
-    
+
     if (s_instance_mutex != nullptr && xSemaphoreTake(s_instance_mutex, portMAX_DELAY) == pdTRUE) {
         s_instance = this;
         xSemaphoreGive(s_instance_mutex);
@@ -51,7 +51,7 @@ bool MqttService::begin() {
     m_mqtt_client = std::make_unique<MqttClient>(*m_wifi_client);
 
     m_mqtt_client->setUsernamePassword(m_username, m_password);
-    m_mqtt_client->setId("esp32_001"); 
+    m_mqtt_client->setId("esp32_001");
 
     Serial.printf("[MQTT] Connecting to %s:%d\n", m_broker, m_port);
 
@@ -76,7 +76,6 @@ bool MqttService::begin() {
     xSemaphoreGive(m_mutex);
     return true;
 }
-
 
 void MqttService::disconnect() {
     if (xSemaphoreTake(m_mutex, portMAX_DELAY) == pdTRUE) {
@@ -156,7 +155,6 @@ void MqttService::onMessageReceived(int message_size) {
         xSemaphoreGive(s_instance->m_mutex);
     }
 }
-
 
 } // namespace IoT
 } // namespace PlantMonitor
