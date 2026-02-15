@@ -16,6 +16,7 @@
 #include <freertos/queue.h>
 #include "../sensor/sensor-task.h"
 #include "utils/configuration/config.h"
+#include "../plant/plant-config.h"
 
 // Forward declaration to avoid circular includes
 namespace PlantMonitor {
@@ -37,7 +38,8 @@ namespace Tasks {
  * @{
  */
 
-constexpr uint32_t IOT_MQTT_PUB_INTERVAL_MS = 5000;  //!< Interval between MQTT publishes
+// MQTT publish interval is now configured in plant-config.h
+constexpr uint32_t IOT_MQTT_PUB_INTERVAL_MS = MQTT_TELEMETRY_INTERVAL_MS;  //!< Interval between MQTT publishes (from plant-config.h)
 constexpr uint32_t IOT_RECONNECT_DELAY_MS = 1000;    //!< Delay before retrying connection
 constexpr uint32_t IOT_FSM_TICK_MS = 20;             //!< FSM tick interval
 constexpr uint32_t IOT_WIFI_TIMEOUT_MS = 30000;      //!< WiFi connection timeout
@@ -135,6 +137,8 @@ struct IoTContext {
     uint32_t mqttInitRetries;    //!< MQTT initialization retry counter
     uint32_t configLoadFailures; //!< Config load failure counter
     QueueHandle_t bleQueue;      //!< Queue for BLE messages
+    bool firstMqttPublish;       //!< True if first MQTT publish after connection
+    bool ntpConfigured;          //!< True if NTP has been configured
 
     // Pending configuration during WiFi test
     bool hasPendingConfig;   //!< True if config waiting for WiFi test

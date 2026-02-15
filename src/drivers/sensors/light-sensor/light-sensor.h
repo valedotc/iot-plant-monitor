@@ -11,9 +11,10 @@ class LightSensor{
 
         explicit LightSensor(uint8_t pin = Config::GROW_LIGHT_PIN);
 
-        void begin(); 
+        void begin();
         int readRaw();
-        float readVoltage(float vref = 3.3f) ;          
+        int readRawAverage(uint8_t samples = 10);  // Read multiple samples and return average
+        float readVoltage(float vref = 3.3f) ;
         float readPercentage(int minRaw = 0, int maxRaw = 4095) ; // Maps raw to 0..100%
 
     private:
