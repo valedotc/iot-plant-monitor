@@ -112,7 +112,7 @@ bool MqttTelemetryPublisher::publishTelemetry(int deviceId, const SensorData &da
 
 String MqttTelemetryPublisher::generateDeviceTopic(int deviceId) {
     char topic[64];
-    snprintf(topic, sizeof(topic), "plantform/esp32_%03d/telemetry", deviceId);
+    snprintf(topic, sizeof(topic), "plantformio/esp32_%03d/telemetry", deviceId);
     return String(topic);
 }
 
