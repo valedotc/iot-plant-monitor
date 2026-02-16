@@ -8,7 +8,7 @@
  * \brief Light Sensor Driver
  */
 
-#define LIGHT_SENSOR_DEFAULT_PIN Config::GROW_LIGHT_PIN //!< Default GPIO pin for light sensor
+#define LIGHT_SENSOR_DEFAULT_PIN Config::LIGHT_SENSOR_PIN //!< Default GPIO pin for light sensor
 #define ADC_MAX_VALUE (4095u)                           //!< Maximum ADC value for 12-bit resolution
 #define ADC_MIN_VALUE (0u)                              //!< Minimum ADC value
 #define ADC_REF_VOLTAGE (3.3f)                          //!< Reference voltage for ADC

@@ -18,20 +18,20 @@ DerivativeFilter::~DerivativeFilter() {
 }
 
 float DerivativeFilter::apply(float input) {
-    
+
     float processed_input = input;
     if (m_smoother) {
         m_smoother->addSample(input);
         processed_input = m_smoother->getAverage();
     }
-    
+
     float derivative = 0.0f;
     if (m_has_previous) {
         derivative = (processed_input - m_previous_input) * m_scale;
     } else {
         m_has_previous = true;
     }
-    
+
     m_previous_input = processed_input;
     return derivative;
 }

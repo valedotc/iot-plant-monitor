@@ -1,0 +1,80 @@
+/**
+ * @mainpage IoT Plant Monitor
+ *
+ * @section intro_sec Introduction
+ *
+ * An **ESP32-based smart plant monitoring system** that tracks environmental conditions
+ * (temperature, humidity, soil moisture, light), displays plant health through an
+ * expressive OLED face, and publishes telemetry to the cloud via MQTT.
+ *
+ * Initial device setup is performed wirelessly over Bluetooth Low Energy from a
+ * companion mobile app.
+ *
+ * @section features_sec Features
+ *
+ * - **Sensor monitoring** -- BME280 (temperature & humidity), capacitive soil moisture sensor, photoresistor
+ * - **Plant health FSM** -- Three emotional states (Happy, Angry, Dying) driven by configurable thresholds
+ * - **128x128 OLED display** -- Animated faces reflecting plant health, plus sensor data pages
+ * - **BLE provisioning** -- Zero-config setup via Bluetooth (Nordic UART Service)
+ * - **MQTT telemetry** -- Periodic sensor data publishing to HiveMQ Cloud over TLS
+ * - **Factory reset** -- Hold the button for 10 seconds to clear configuration and reboot
+ * - **Dual-core FreeRTOS** -- Display/UI on Core 0, networking and sensors on Core 1
+ *
+ * @section hw_sec Hardware
+ *
+ * | Component        | Details                                |
+ * |------------------|----------------------------------------|
+ * | Microcontroller  | ESP32 (Denky32 / ESP32-DevKitC)        |
+ * | Display          | SH1107 128x128 monochrome OLED (I2C)   |
+ * | Temp/Humidity    | Bosch BME280 (I2C)                     |
+ * | Soil moisture    | Capacitive analog sensor (GPIO 34)     |
+ * | Light            | Photoresistor (GPIO 35)                |
+ * | Button           | Tactile switch on GPIO 32 (pull-up)    |
+ *
+ * @section arch_sec Architecture
+ *
+ * The system runs three FreeRTOS tasks across the ESP32's two cores:
+ *
+ * | Task            | Core | Priority | Responsibility                              |
+ * |-----------------|------|----------|---------------------------------------------|
+ * | **DisplayTask** | 0    | 3        | UI rendering, button input, plant state     |
+ * | **SensorTask**  | 1    | 2        | Periodic sensor reads, filtering            |
+ * | **IoTTask**     | 1    | 1        | BLE provisioning, Wi-Fi, MQTT telemetry     |
+ *
+ * @subsection iot_fsm IoT Task State Machine
+ *
+ * @code
+ * Boot --> BleAdvertising --> BleConfiguring --> BleTestingWifi
+ *                                                     |
+ *                                                     v
+ *                        MqttOperating <-- WifiConnecting
+ * @endcode
+ *
+ * @subsection plant_fsm Plant Health State Machine
+ *
+ * @code
+ * HAPPY --(sensors out of range for debounce period)--> ANGRY
+ * ANGRY --(sensors back in range)--> HAPPY
+ * ANGRY --(out of range beyond timeout)--> DYING
+ * DYING --(sensors back in range)--> HAPPY
+ * @endcode
+ *
+ * @section structure_sec Project Structure
+ *
+ * The codebase is organized into four main layers:
+ *
+ * - @ref group_drivers "Drivers" -- Hardware Abstraction Layers for all peripherals
+ * - @ref group_tasks "Tasks" -- FreeRTOS tasks implementing the application logic
+ * - @ref group_iot "IoT" -- MQTT service for cloud communication
+ * - @ref group_utils "Utilities" -- Shared components (filters, timers, configuration)
+ *
+ * @section deps_sec Dependencies
+ *
+ * | Library            | Purpose                       |
+ * |--------------------|-------------------------------|
+ * | NimBLE-Arduino     | Bluetooth Low Energy          |
+ * | Adafruit SH110X    | OLED display driver           |
+ * | Adafruit BME280    | Temperature & humidity sensor  |
+ * | ArduinoMqttClient  | MQTT protocol                 |
+ * | ArduinoJson        | JSON serialization            |
+ */

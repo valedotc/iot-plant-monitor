@@ -40,7 +40,7 @@ constexpr uint32_t STATE_DEBOUNCE_MINUTES = 1;
  *
  * Default: 10 minutes (testing)
  */
-constexpr uint32_t DYING_TIMEOUT_MINUTES = 5;  // Change to 720 for production
+constexpr uint32_t DYING_TIMEOUT_MINUTES = 5; // Change to 720 for production
 
 // ============================================================================
 // TELEMETRY CONFIGURATION

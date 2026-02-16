@@ -3,76 +3,41 @@
 #include <Arduino.h>
 
 /*!
- * \file app_config.h
- * \brief System-wide configuration for IoT Plant Monitor
+ * \file app-config.h
+ * \brief System-wide hardware and task configuration for IoT Plant Monitor.
  */
 
 namespace Config {
 
-// ============ I2C Configuration ============
-constexpr uint8_t I2C_SDA_PIN = 21;
-constexpr uint8_t I2C_SCL_PIN = 22;
-constexpr uint32_t I2C_FREQUENCY = 400000; // 400kHz
+// ============ I2C Bus ============
+constexpr uint32_t I2C_FREQUENCY = 400000; //!< I2C clock speed (400 kHz)
 
-// ============ Display Configuration ============
+// ============ Display (SH1107 OLED) ============
 constexpr uint8_t DISPLAY_WIDTH = 128;
 constexpr uint8_t DISPLAY_HEIGHT = 128;
 constexpr uint8_t DISPLAY_I2C_ADDR = 0x3C;
-constexpr int8_t DISPLAY_RESET_PIN = -1;
-
-// ============ Display Colors (SSD1327 Grayscale 0-15) ============
-constexpr uint8_t COLOR_BLACK = 0;
-constexpr uint8_t COLOR_WHITE = 15;
-constexpr uint8_t COLOR_GRAY_DARK = 5;
-constexpr uint8_t COLOR_GRAY_MID = 8;
-constexpr uint8_t COLOR_GRAY_LIGHT = 12;
+constexpr int8_t DISPLAY_RESET_PIN = -1; //!< No hardware reset pin
 
 // ============ Sensor Pins ============
-constexpr uint8_t SOIL_MOISTURE_PIN = 34; // ADC1
+constexpr uint8_t SOIL_MOISTURE_PIN = 34; //!< Capacitive moisture sensor (ADC1)
+constexpr uint8_t LIGHT_SENSOR_PIN = 35;  //!< Photoresistor (ADC1)
+constexpr uint8_t BUTTON_PIN = 32;        //!< Tactile button (internal pull-up)
 
-// ============ Actuator Pins ============
-constexpr uint8_t GROW_LIGHT_PIN = 35;
-
-// ============ FreeRTOS Configuration ============
+// ============ FreeRTOS Tasks ============
 namespace Tasks {
-constexpr uint16_t SENSOR_STACK_SIZE = 4096;
-constexpr uint8_t SENSOR_PRIORITY = 3;
-constexpr uint8_t SENSOR_CORE = 0;
 
 constexpr uint16_t DISPLAY_STACK_SIZE = 4096;
-constexpr uint8_t DISPLAY_PRIORITY = 2;
-constexpr uint8_t DISPLAY_CORE = 1;
+constexpr UBaseType_t DISPLAY_PRIORITY = 3; //!< Highest - UI must stay responsive
+constexpr BaseType_t DISPLAY_CORE = 0;
 
-constexpr uint16_t CONTROL_STACK_SIZE = 3072;
-constexpr uint8_t CONTROL_PRIORITY = 3;
-constexpr uint8_t CONTROL_CORE = 0;
+constexpr uint16_t SENSOR_STACK_SIZE = 4096;
+constexpr UBaseType_t SENSOR_PRIORITY = 2;
+constexpr BaseType_t SENSOR_CORE = 1;
 
-constexpr uint16_t IOT_STACK_SIZE = 8192;
-constexpr uint8_t IOT_PRIORITY = 1;
-constexpr uint8_t IOT_CORE = 0;
+constexpr uint16_t IOT_STACK_SIZE = 8192; //!< Larger stack for TLS + JSON
+constexpr UBaseType_t IOT_PRIORITY = 1;   //!< Lowest - networking is best-effort
+constexpr BaseType_t IOT_CORE = 1;        //!< Separate from display core
+
 } // namespace Tasks
-
-// ============ Timing Configuration ============
-namespace Timing {
-constexpr uint32_t SENSOR_READ_INTERVAL_MS = 10000;      // 10s
-constexpr uint32_t DISPLAY_UPDATE_INTERVAL_MS = 100;     // 10 FPS
-constexpr uint32_t BIOELECTRIC_SAMPLE_INTERVAL_MS = 500; // 2 Hz
-constexpr uint32_t IOT_PUBLISH_INTERVAL_MS = 60000;      // 1 min
-} // namespace Timing
-
-// ============ WiFi Configuration ============
-namespace WiFi {
-constexpr const char *SSID = "SSID";
-constexpr const char *PASSWORD = "PASSWORD";
-} // namespace WiFi
-
-// ============ MQTT Configuration ============
-namespace MQTT {
-constexpr const char *BROKER = "broker.hivemq.com";
-constexpr uint16_t PORT = 1883;
-constexpr const char *CLIENT_ID = "PlantMonitor";
-constexpr const char *TOPIC_STATUS = "plant/status";
-constexpr const char *TOPIC_SENSORS = "plant/sensors";
-} // namespace MQTT
 
 } // namespace Config

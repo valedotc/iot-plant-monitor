@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-#include <cctype>   // std::isspace (used by parser implementation)
-#include <cstdlib>  // std::strtof  (used by parser implementation)
+#include <cctype>  // std::isspace (used by parser implementation)
+#include <cstdlib> // std::strtof  (used by parser implementation)
 
 /*!
  * \file config.h
@@ -23,18 +23,18 @@
 /// \brief Application configuration payload.
 struct AppConfig {
 
-  /// \brief Wi-Fi SSID.
-  std::string ssid;
+    /// \brief Wi-Fi SSID.
+    std::string ssid;
 
-  /// \brief Wi-Fi password.
-  std::string password;
+    /// \brief Wi-Fi password.
+    std::string password;
 
-  /*!
+    /*!
    * \brief Optional numeric parameters.
    *
    * The meaning/order of these values is application-specific.
    */
-  std::vector<float> params;
+    std::vector<float> params;
 };
 
 /*!
@@ -59,7 +59,7 @@ class ConfigHandler {
      *
      * In ESP32 Preferences, the namespace groups keys similarly to a folder.
      */
-    static constexpr const char* kNamespace = "appcfg";
+    static constexpr const char *kNamespace = "appcfg";
 
     /*!
      * \brief Maximum number of params allowed.
@@ -79,7 +79,7 @@ class ConfigHandler {
      * - SSID and password keys exist
      * - params count <= kMaxParams
      */
-    static bool load(AppConfig& out);
+    static bool load(AppConfig &out);
 
     /*!
      * \brief Save configuration to NVS.
@@ -93,7 +93,7 @@ class ConfigHandler {
      *
      * \note Saving fails if cfg.params.size() > kMaxParams.
      */
-    static bool save(const AppConfig& cfg);
+    static bool save(const AppConfig &cfg);
 
     /*!
      * \brief Clear all configuration keys from the NVS namespace.
@@ -146,25 +146,25 @@ class ConfigHandler {
      *
      * \warning This is a lightweight parser and is NOT a full JSON parser.
      */
-    static bool parseAppCfg(const std::string& msg, AppConfig& cfg);
+    static bool parseAppCfg(const std::string &msg, AppConfig &cfg);
 
   private:
     /// \brief NVS key used as "configuration valid" marker.
-    static constexpr const char* kKeyOk       = "ok";
+    static constexpr const char *kKeyOk = "ok";
 
     /// \brief NVS key for the Wi-Fi SSID.
-    static constexpr const char* kKeySSID     = "ssid";
+    static constexpr const char *kKeySSID = "ssid";
 
     /// \brief NVS key for the Wi-Fi password.
-    static constexpr const char* kKeyPass     = "pass";
+    static constexpr const char *kKeyPass = "pass";
 
     /// \brief NVS key for the stored number of float parameters.
-    static constexpr const char* kKeyParCount = "p_cnt";
+    static constexpr const char *kKeyParCount = "p_cnt";
 
     /*!
      * \brief NVS key for the raw parameters blob.
      *
      * Implementation detail: params can be stored as a contiguous float array (bytes).
      */
-    static constexpr const char* kKeyParBlob  = "p_blob";
+    static constexpr const char *kKeyParBlob = "p_blob";
 };

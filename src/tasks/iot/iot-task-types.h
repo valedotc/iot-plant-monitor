@@ -39,13 +39,13 @@ namespace Tasks {
  */
 
 // MQTT publish interval is now configured in plant-config.h
-constexpr uint32_t IOT_MQTT_PUB_INTERVAL_MS = MQTT_TELEMETRY_INTERVAL_MS;  //!< Interval between MQTT publishes (from plant-config.h)
-constexpr uint32_t IOT_RECONNECT_DELAY_MS = 1000;    //!< Delay before retrying connection
-constexpr uint32_t IOT_FSM_TICK_MS = 20;             //!< FSM tick interval
-constexpr uint32_t IOT_WIFI_TIMEOUT_MS = 30000;      //!< WiFi connection timeout
-constexpr uint32_t IOT_WIFI_TEST_TIMEOUT_MS = 15000; //!< WiFi test timeout during BLE config
-constexpr uint32_t IOT_MAX_MQTT_INIT_RETRIES = 3;    //!< Maximum MQTT initialization retries
-constexpr uint32_t IOT_MAX_CONFIG_LOAD_FAILS = 5;    //!< Max config load failures before reset
+constexpr uint32_t IOT_MQTT_PUB_INTERVAL_MS = MQTT_TELEMETRY_INTERVAL_MS; //!< Interval between MQTT publishes (from plant-config.h)
+constexpr uint32_t IOT_RECONNECT_DELAY_MS = 1000;                         //!< Delay before retrying connection
+constexpr uint32_t IOT_FSM_TICK_MS = 20;                                  //!< FSM tick interval
+constexpr uint32_t IOT_WIFI_TIMEOUT_MS = 30000;                           //!< WiFi connection timeout
+constexpr uint32_t IOT_WIFI_TEST_TIMEOUT_MS = 15000;                      //!< WiFi test timeout during BLE config
+constexpr uint32_t IOT_MAX_MQTT_INIT_RETRIES = 3;                         //!< Maximum MQTT initialization retries
+constexpr uint32_t IOT_MAX_CONFIG_LOAD_FAILS = 5;                         //!< Max config load failures before reset
 
 /*! @} */
 

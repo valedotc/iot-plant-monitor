@@ -4,9 +4,8 @@ namespace PlantMonitor {
 namespace Drivers {
 
 LightSensor::LightSensor(uint8_t pin)
-: _pin(pin) {
+    : _pin(pin) {
 }
-
 
 void LightSensor::begin() {
     pinMode(_pin, INPUT);
@@ -17,13 +16,14 @@ int LightSensor::readRaw() {
 }
 
 int LightSensor::readRawAverage(uint8_t samples) {
-    if (samples == 0) samples = 1;
+    if (samples == 0)
+        samples = 1;
 
     uint32_t sum = 0;
     for (uint8_t i = 0; i < samples; i++) {
         sum += analogRead(_pin);
         if (i < samples - 1) {
-            delayMicroseconds(100);  // Small delay between readings
+            delayMicroseconds(100); // Small delay between readings
         }
     }
 

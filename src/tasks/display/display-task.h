@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "app-config.h"
 #include "utils/configuration/config.h"
 
 namespace PlantMonitor {
@@ -25,9 +26,9 @@ enum class UiState {
  * \param core ESP32 core to pin the task to
  */
 void startDisplayTask(
-    uint32_t stackSize = 4096,
-    UBaseType_t priority = 3,
-    BaseType_t core = 1);
+    uint32_t stackSize = Config::Tasks::DISPLAY_STACK_SIZE,
+    UBaseType_t priority = Config::Tasks::DISPLAY_PRIORITY,
+    BaseType_t core = Config::Tasks::DISPLAY_CORE);
 
 /*!
  * \brief Notifies the display task of a button press

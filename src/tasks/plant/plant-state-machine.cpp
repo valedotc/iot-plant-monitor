@@ -25,15 +25,15 @@ static uint32_t s_lastConditionChangeTime = 0;
 
 // Light tracking
 struct LightTracking {
-    float accumulatedHours;           // Hours accumulated today
-    int lastDayOfYear;                // Day of year (0-365)
-    uint8_t daysWithoutEnoughLight;   // Consecutive days without enough light
-    uint32_t lastUpdateMs;            // Last update timestamp (millis)
-    uint32_t lastDebugPrintMs;        // Last debug print timestamp
+    float accumulatedHours;         // Hours accumulated today
+    int lastDayOfYear;              // Day of year (0-365)
+    uint8_t daysWithoutEnoughLight; // Consecutive days without enough light
+    uint32_t lastUpdateMs;          // Last update timestamp (millis)
+    uint32_t lastDebugPrintMs;      // Last debug print timestamp
     bool initialized;
 };
 
-static LightTracking s_lightTracking = {0.0f, -1, 0, 0, 0, false};
+static LightTracking s_lightTracking = { 0.0f, -1, 0, 0, 0, false };
 static Preferences s_nvs;
 
 // ============================================================================
@@ -66,7 +66,8 @@ static void prv_load_light_tracking_from_nvs() {
     s_nvs.end();
 
     Serial.printf("[PLANT] Loaded light tracking: %.1fh accumulated, %d days without light\n",
-                 s_lightTracking.accumulatedHours, s_lightTracking.daysWithoutEnoughLight);
+                  s_lightTracking.accumulatedHours,
+                  s_lightTracking.daysWithoutEnoughLight);
 }
 
 /*!
@@ -122,7 +123,7 @@ static void prv_update_light_tracking() {
     time_t now;
     time(&now);
     if (now < 946684800) { // Check if time is valid (> 2000-01-01)
-        return; // Time not synced yet
+        return;            // Time not synced yet
     }
 
     struct tm timeinfo;
@@ -135,8 +136,9 @@ static void prv_update_light_tracking() {
         if (s_lightTracking.accumulatedHours < s_thresholds.lightMin) {
             s_lightTracking.daysWithoutEnoughLight++;
             Serial.printf("[PLANT] Day ended with %.1fh light (need %.1fh) - %d days without enough light\n",
-                         s_lightTracking.accumulatedHours, s_thresholds.lightMin,
-                         s_lightTracking.daysWithoutEnoughLight);
+                          s_lightTracking.accumulatedHours,
+                          s_thresholds.lightMin,
+                          s_lightTracking.daysWithoutEnoughLight);
         } else {
             s_lightTracking.daysWithoutEnoughLight = 0;
             Serial.printf("[PLANT] Day ended with %.1fh light - Reset counter\n", s_lightTracking.accumulatedHours);
@@ -180,15 +182,18 @@ static void prv_update_light_tracking() {
 
                 Serial.println("========================================");
                 Serial.printf("[PLANT LIGHT] Debug Info @ %02d:%02d:%02d\n",
-                             timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+                              timeinfo.tm_hour,
+                              timeinfo.tm_min,
+                              timeinfo.tm_sec);
                 Serial.printf("  Accumulated today: %.2f hours (need %.1f h/day)\n",
-                             s_lightTracking.accumulatedHours, s_thresholds.lightMin);
+                              s_lightTracking.accumulatedHours,
+                              s_thresholds.lightMin);
                 Serial.printf("  Days without enough light: %d\n",
-                             s_lightTracking.daysWithoutEnoughLight);
+                              s_lightTracking.daysWithoutEnoughLight);
                 Serial.printf("  Currently light detected: %s\n",
-                             data.lightDetected ? "YES" : "NO");
+                              data.lightDetected ? "YES" : "NO");
                 Serial.printf("  Light status: %s\n",
-                             prv_is_light_ok() ? "OK" : "BAD");
+                              prv_is_light_ok() ? "OK" : "BAD");
                 Serial.println("========================================");
             }
         }
@@ -261,9 +266,12 @@ void updatePlantState() {
                 s_thresholdsLoaded = true;
                 Serial.println("[PLANT] Thresholds loaded from configuration");
                 Serial.printf("[PLANT] Temp: %.1f-%.1f°C, Humidity: %.1f-%.1f%%, Moisture: %.1f-%.1f%%, Light: %.1fh/day\n",
-                              s_thresholds.tempMin, s_thresholds.tempMax,
-                              s_thresholds.humidityMin, s_thresholds.humidityMax,
-                              s_thresholds.moistureMin, s_thresholds.moistureMax,
+                              s_thresholds.tempMin,
+                              s_thresholds.tempMax,
+                              s_thresholds.humidityMin,
+                              s_thresholds.humidityMax,
+                              s_thresholds.moistureMin,
+                              s_thresholds.moistureMax,
                               s_thresholds.lightMin);
             }
         }
@@ -299,9 +307,9 @@ void updatePlantState() {
         s_lastAllOk = allOk;
         s_lastConditionChangeTime = now;
         Serial.printf("[PLANT] Condition changed: %s (sensors: %s, light: %d days bad)\n",
-                     allOk ? "OK" : "BAD",
-                     sensorsInRange ? "OK" : "BAD",
-                     s_lightTracking.daysWithoutEnoughLight);
+                      allOk ? "OK" : "BAD",
+                      sensorsInRange ? "OK" : "BAD",
+                      s_lightTracking.daysWithoutEnoughLight);
     }
 
     // Calculate time in current condition
@@ -382,7 +390,7 @@ bool loadThresholdsFromConfig(const AppConfig &cfg, PlantThresholds &thresholds)
     thresholds.moistureMin = getConfigParam(cfg, ParamIndex::MoistureMin, 20.0f);
     thresholds.moistureMax = getConfigParam(cfg, ParamIndex::MoistureMax, 80.0f);
     thresholds.lightMin = getConfigParam(cfg, ParamIndex::LightHoursMin, 8.0f); // Minimum hours of light per day
-    thresholds.lightMax = 24.0f; // No max light parameter in config, use 24 hours
+    thresholds.lightMax = 24.0f;                                                // No max light parameter in config, use 24 hours
 
     return true;
 }

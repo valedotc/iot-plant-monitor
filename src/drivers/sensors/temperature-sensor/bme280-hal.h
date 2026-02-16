@@ -2,7 +2,6 @@
 
 #include <Wire.h>
 #include <Adafruit_BME280.h>
-#include "app-config.h"
 /*!
  * \file temperature_sensor.h
  * \brief bme280 sensor hardware abstraction layer (HAL)

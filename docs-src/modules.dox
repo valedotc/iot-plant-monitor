@@ -1,0 +1,82 @@
+/**
+ * @defgroup group_drivers Drivers
+ * @brief Hardware Abstraction Layers for all peripherals.
+ *
+ * Each driver encapsulates the low-level interaction with a specific hardware
+ * component, providing a clean C++ interface to the rest of the application.
+ *
+ * @{
+ *   @defgroup group_drivers_bluetooth Bluetooth (BLE UART)
+ *   @brief NimBLE-based Bluetooth Low Energy UART service for device provisioning.
+ *
+ *   @defgroup group_drivers_display Display (OLED)
+ *   @brief SH1107 128x128 OLED display driver via I2C.
+ *
+ *   @defgroup group_drivers_sensors Sensors
+ *   @brief Sensor drivers for environmental monitoring.
+ *   @{
+ *     @defgroup group_drivers_button Button
+ *     @brief Tactile button with interrupt-driven press detection.
+ *
+ *     @defgroup group_drivers_light Light Sensor
+ *     @brief Analog photoresistor for ambient light measurement.
+ *
+ *     @defgroup group_drivers_moisture Moisture Sensor
+ *     @brief Capacitive soil moisture sensor (analog).
+ *
+ *     @defgroup group_drivers_temperature Temperature Sensor (BME280)
+ *     @brief Bosch BME280 I2C sensor for temperature and humidity.
+ *   @}
+ *
+ *   @defgroup group_drivers_wifi Wi-Fi
+ *   @brief ESP32 Wi-Fi connection manager.
+ * @}
+ */
+
+/**
+ * @defgroup group_tasks FreeRTOS Tasks
+ * @brief Application-level FreeRTOS tasks running on the ESP32 dual-core system.
+ *
+ * @{
+ *   @defgroup group_tasks_display Display Task
+ *   @brief UI rendering, page navigation, and button handling (Core 0).
+ *
+ *   @defgroup group_tasks_iot IoT Task
+ *   @brief BLE provisioning, Wi-Fi management, and MQTT telemetry state machine (Core 1).
+ *
+ *   @defgroup group_tasks_plant Plant State Machine
+ *   @brief Finite state machine for plant health evaluation (Happy / Angry / Dying).
+ *
+ *   @defgroup group_tasks_sensor Sensor Task
+ *   @brief Periodic sensor reading with filtering and shared data publication (Core 1).
+ * @}
+ */
+
+/**
+ * @defgroup group_iot IoT Services
+ * @brief Cloud communication layer.
+ *
+ * @{
+ *   @defgroup group_iot_mqtt MQTT Service
+ *   @brief TLS-secured MQTT client for publishing sensor telemetry to HiveMQ Cloud.
+ * @}
+ */
+
+/**
+ * @defgroup group_utils Utilities
+ * @brief Shared utility components used across the application.
+ *
+ * @{
+ *   @defgroup group_utils_config Configuration
+ *   @brief NVS-backed persistent configuration storage and JSON parsing.
+ *
+ *   @defgroup group_utils_derivative Derivative Filter
+ *   @brief Rate-of-change filter for detecting rapid sensor value transitions.
+ *
+ *   @defgroup group_utils_mavg Moving Average
+ *   @brief Circular-buffer moving average filter for sensor smoothing.
+ *
+ *   @defgroup group_utils_timer Periodic Timer
+ *   @brief Thread-safe periodic timer for scheduling recurring operations.
+ * @}
+ */

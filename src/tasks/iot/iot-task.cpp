@@ -333,7 +333,7 @@ static IoTState prv_handle_mqtt_operating() {
         }
 
         s_ctx.mqttInitRetries = 0;
-        s_ctx.firstMqttPublish = true;  // Force immediate publish after connection
+        s_ctx.firstMqttPublish = true; // Force immediate publish after connection
         Serial.println("[MQTT] Connected!");
     }
 
@@ -342,7 +342,7 @@ static IoTState prv_handle_mqtt_operating() {
     // Publish telemetry: immediately after connection, then periodically
     uint32_t now = millis();
     bool shouldPublish = s_ctx.firstMqttPublish ||
-                        (now - s_ctx.lastMqttPublish >= IOT_MQTT_PUB_INTERVAL_MS);
+                         (now - s_ctx.lastMqttPublish >= IOT_MQTT_PUB_INTERVAL_MS);
 
     if (shouldPublish) {
         s_ctx.lastMqttPublish = now;

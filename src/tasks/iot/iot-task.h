@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "app-config.h"
 #include "../sensor/sensor-task.h"
 
 /*!
@@ -22,9 +23,9 @@ namespace Tasks {
  * \param core ESP32 core to pin the task to
  */
 void startIoTTask(
-    uint32_t stackSize = 8192,
-    UBaseType_t priority = 2,
-    BaseType_t core = 0);
+    uint32_t stackSize = Config::Tasks::IOT_STACK_SIZE,
+    UBaseType_t priority = Config::Tasks::IOT_PRIORITY,
+    BaseType_t core = Config::Tasks::IOT_CORE);
 
 } // namespace Tasks
 } // namespace PlantMonitor

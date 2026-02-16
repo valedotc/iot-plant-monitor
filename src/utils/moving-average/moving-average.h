@@ -14,7 +14,7 @@ namespace Utils {
  * \brief Implements a simple moving average filter
  */
 class MovingAverage {
-public:
+  public:
     /*! 
      * \brief Constructor
      * \param size Number of samples to average
@@ -37,11 +37,12 @@ public:
      * \brief Clear all stored samples
      */
     void clear();
-private:
-    size_t m_size;                   //!< Number of samples to average
+
+  private:
+    size_t m_size;                //!< Number of samples to average
     std::vector<float> m_samples; //!< Stored samples
-    size_t m_index;                  //!< Current index for circular buffer
-    size_t m_count;                  //!< Number of samples added
+    size_t m_index;               //!< Current index for circular buffer
+    size_t m_count;               //!< Number of samples added
 };
 } // namespace Utils
 } // namespace PlantMonitor

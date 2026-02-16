@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+#include "app-config.h"
 #include "tasks/sensor/sensor-task.h"
 #include "tasks/iot/iot-task.h"
 #include "tasks/display/display-task.h"
@@ -26,27 +27,20 @@ void setup() {
     Serial.println("  ESP32 IoT Monitoring System");
     Serial.println("=====================================");
 
-    // NOTE: Uncomment to reset configuration during development
-    ConfigHandler::clear();
-    Serial.println("[DEV] Configuration cleared");
-    
     Tasks::startDisplayTask(
-        4096,
-        3, //Highest priority
-        0  // Core 0
-    );
+        Config::Tasks::DISPLAY_STACK_SIZE,
+        Config::Tasks::DISPLAY_PRIORITY,
+        Config::Tasks::DISPLAY_CORE);
 
     Tasks::startIoTTask(
-        8192,
-        1, //Low priority
-        1  // Core 1 - Keeps WiFi/BLE operations separate from Core 0 to prevent watchdog triggers
-    );
+        Config::Tasks::IOT_STACK_SIZE,
+        Config::Tasks::IOT_PRIORITY,
+        Config::Tasks::IOT_CORE);
 
     Tasks::startSensorTask(
-        4096,
-        2, //Medium priority
-        1  // Core 0
-    );
+        Config::Tasks::SENSOR_STACK_SIZE,
+        Config::Tasks::SENSOR_PRIORITY,
+        Config::Tasks::SENSOR_CORE);
 
     Serial.println("[INIT] System ready\n");
 }

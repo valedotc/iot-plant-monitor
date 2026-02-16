@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include "app-config.h"
 
 /*!
  * \file sensor-task.h
@@ -32,9 +33,9 @@ struct SensorData {
  * \param core Core to pin the task to (default: 0)
  */
 void startSensorTask(
-    uint32_t stackSize = 4096,
-    UBaseType_t priority = 2,
-    BaseType_t core = 0);
+    uint32_t stackSize = Config::Tasks::SENSOR_STACK_SIZE,
+    UBaseType_t priority = Config::Tasks::SENSOR_PRIORITY,
+    BaseType_t core = Config::Tasks::SENSOR_CORE);
 
 /*!
  * \brief Get the latest sensor data in a thread-safe manner

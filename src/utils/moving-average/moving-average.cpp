@@ -21,9 +21,9 @@ float MovingAverage::getAverage() const {
     if (m_count == 0) {
         return 0.0f;
     }
-    float sum = std::accumulate(m_samples.begin(), 
-                                 m_samples.begin() + m_count, 
-                                 0.0f);
+    float sum = std::accumulate(m_samples.begin(),
+                                m_samples.begin() + m_count,
+                                0.0f);
     return sum / m_count;
 }
 

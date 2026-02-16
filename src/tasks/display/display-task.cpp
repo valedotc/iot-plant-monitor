@@ -11,7 +11,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
-#define SWITCH_PIN 32
+#define SWITCH_PIN Config::BUTTON_PIN
 
 using namespace PlantMonitor::Drivers;
 
@@ -21,8 +21,10 @@ namespace Tasks {
 /*! \defgroup DisplayTiming Display Timing Configuration
  *  @{
  */
-#define UI_UPDATE_INTERVAL_MS 100 /*!< UI refresh interval in milliseconds */
-#define UI_PAGE_TIMEOUT_MS 10000  /*!< Page timeout before returning to idle */
+#define UI_UPDATE_INTERVAL_MS 100   /*!< UI refresh interval in milliseconds */
+#define UI_PAGE_TIMEOUT_MS 10000    /*!< Page timeout before returning to idle */
+#define FACTORY_RESET_HOLD_MS 10000 /*!< Button hold duration for factory reset (ms) */
+#define FACTORY_RESET_SHOW_MS 2500  /*!< Hold time before showing reset progress UI (ms) */
 /*! @} */
 
 static DisplayHAL *display_task_driver = nullptr;
@@ -36,6 +38,9 @@ static QueueHandle_t display_task_ui_event_queue = nullptr;
 PlantMonitor::Drivers::ButtonHal *display_task_button = nullptr;
 
 static bool display_task_plant_state_initialized = false;
+
+static bool display_task_button_held = false;        /*!< True while tracking a long press */
+static uint32_t display_task_button_press_start = 0; /*!< Timestamp of the first press edge */
 
 /*!
  * \brief ISR callback for boot button press
@@ -280,6 +285,83 @@ static void prv_draw_bluetooth_icon() {
 }
 
 /*!
+ * \brief Draw the factory reset progress screen
+ * \param progress Progress percentage (0-100)
+ */
+static void prv_draw_factory_reset_progress(uint8_t progress) {
+    display_task_driver->clear();
+
+    // Header
+    const char *title = "FACTORY RESET";
+    display_task_driver->setTextSize(1);
+    int16_t x = (128 - strlen(title) * 6) / 2;
+    display_task_driver->setCursor(x, 20);
+    display_task_driver->printf("%s", title);
+
+    // Subtitle
+    const char *subtitle = "Hold button...";
+    x = (128 - strlen(subtitle) * 6) / 2;
+    display_task_driver->setCursor(x, 36);
+    display_task_driver->printf("%s", subtitle);
+
+    // Progress bar outline
+    const int16_t barX = 14;
+    const int16_t barY = 60;
+    const int16_t barW = 100;
+    const int16_t barH = 12;
+    display_task_driver->drawRect(barX, barY, barW, barH, COLOR_WHITE);
+
+    // Progress bar fill
+    int16_t fillW = (int16_t)((uint32_t)(barW - 4) * progress / 100);
+    if (fillW > 0) {
+        display_task_driver->fillRect(barX + 2, barY + 2, fillW, barH - 4, COLOR_WHITE);
+    }
+
+    // Percentage
+    char pctBuf[8];
+    snprintf(pctBuf, sizeof(pctBuf), "%d%%", progress);
+    display_task_driver->setTextSize(2);
+    int16_t pctW = strlen(pctBuf) * 12;
+    display_task_driver->setCursor((128 - pctW) / 2, 84);
+    display_task_driver->printf("%s", pctBuf);
+
+    // Warning
+    const char *warn = "Release to cancel";
+    display_task_driver->setTextSize(1);
+    x = (128 - strlen(warn) * 6) / 2;
+    display_task_driver->setCursor(x, 110);
+    display_task_driver->printf("%s", warn);
+
+    display_task_driver->update();
+}
+
+/*!
+ * \brief Perform factory reset: clear configuration and restart the microcontroller
+ */
+static void prv_factory_reset() {
+    Serial.println("[DISPLAY] Factory reset triggered!");
+
+    // Show confirmation on display
+    display_task_driver->clear();
+    const char *msg = "RESETTING...";
+    display_task_driver->setTextSize(1);
+    int16_t x = (128 - strlen(msg) * 6) / 2;
+    display_task_driver->setCursor(x, 56);
+    display_task_driver->printf("%s", msg);
+    display_task_driver->update();
+
+    // Clear stored configuration from NVS
+    ConfigHandler::clear();
+    Serial.println("[DISPLAY] Configuration cleared");
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // Restart the microcontroller
+    Serial.println("[DISPLAY] Restarting...");
+    ESP.restart();
+}
+
+/*!
  * \brief Get the next UI state in the FSM sequence
  * \param state Current UI state
  * \return Next UI state
@@ -341,19 +423,60 @@ static void prv_display_task(void *) {
             updatePlantState();
         }
 
+        // ----------------------------------------------------------------
+        // Button handling: short press (page cycle) + long press (reset)
+        // ----------------------------------------------------------------
+
         if (xQueueReceive(display_task_ui_event_queue, &evt, 0) == pdTRUE) {
-            if (display_task_button->debouncing()) {
+            if (display_task_button->debouncing() && !display_task_button_held) {
+                // FALLING edge detected: start tracking the long press
+                // (only allow factory reset when the device is already configured)
+                if (display_task_current_state != UiState::UI_STATE_PAIRING) {
+                    display_task_button_held = true;
+                    display_task_button_press_start = now;
+                } else {
+                    // In pairing mode the button does nothing
+                }
+            }
+        }
+
+        if (display_task_button_held) {
+            // Button is active-low (pull-up): LOW means still pressed
+            bool stillPressed = (digitalRead(SWITCH_PIN) == LOW);
+            uint32_t holdDuration = now - display_task_button_press_start;
+
+            if (stillPressed && holdDuration >= FACTORY_RESET_HOLD_MS) {
+                // Long press completed: factory reset
+                prv_factory_reset();
+                // prv_factory_reset calls ESP.restart(), execution stops here
+            } else if (stillPressed && holdDuration >= FACTORY_RESET_SHOW_MS) {
+                // Show progress only after the initial threshold (avoids flash on short press)
+                uint8_t progress = (uint8_t)((uint32_t)(holdDuration - FACTORY_RESET_SHOW_MS) * 100 /
+                                             (FACTORY_RESET_HOLD_MS - FACTORY_RESET_SHOW_MS));
+                prv_draw_factory_reset_progress(progress);
+            } else if (!stillPressed) {
+                // Button released: treat as short press (page cycle)
+                display_task_button_held = false;
                 display_task_current_state = prv_next_state(display_task_current_state);
                 display_task_last_interaction = now;
             }
         }
 
-        if (display_task_current_state != UiState::UI_STATE_FACE_IDLE &&
+        // ----------------------------------------------------------------
+        // Page timeout: return to idle face after inactivity
+        // ----------------------------------------------------------------
+
+        if (!display_task_button_held &&
+            display_task_current_state != UiState::UI_STATE_FACE_IDLE &&
             now - display_task_last_interaction > UI_PAGE_TIMEOUT_MS && ConfigHandler::isConfigured()) {
             display_task_current_state = UiState::UI_STATE_FACE_IDLE;
         }
 
-        if (now - display_task_last_ui_update >= UI_UPDATE_INTERVAL_MS) {
+        // ----------------------------------------------------------------
+        // UI rendering (skipped while showing reset progress)
+        // ----------------------------------------------------------------
+
+        if (!display_task_button_held && now - display_task_last_ui_update >= UI_UPDATE_INTERVAL_MS) {
             display_task_last_ui_update = now;
             getLatestSensorData(data);
 

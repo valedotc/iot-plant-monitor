@@ -12,9 +12,9 @@ namespace Tasks {
  * \brief States of the plant health monitoring FSM
  */
 enum class PlantState {
-    PLANT_HAPPY,   //!< All sensors within valid range
-    PLANT_ANGRY,   //!< At least one sensor out of range
-    PLANT_DYING    //!< Out of range for more than configured timeout
+    PLANT_HAPPY, //!< All sensors within valid range
+    PLANT_ANGRY, //!< At least one sensor out of range
+    PLANT_DYING  //!< Out of range for more than configured timeout
 };
 
 /*!
@@ -22,14 +22,14 @@ enum class PlantState {
  * \brief Threshold configuration for plant health monitoring
  */
 struct PlantThresholds {
-    float tempMin;         //!< Minimum temperature threshold (°C)
-    float tempMax;         //!< Maximum temperature threshold (°C)
-    float humidityMin;     //!< Minimum air humidity threshold (%)
-    float humidityMax;     //!< Maximum air humidity threshold (%)
-    float moistureMin;     //!< Minimum soil moisture threshold (%)
-    float moistureMax;     //!< Maximum soil moisture threshold (%)
-    float lightMin;        //!< Minimum light hours required
-    float lightMax;        //!< Maximum light hours allowed
+    float tempMin;     //!< Minimum temperature threshold (°C)
+    float tempMax;     //!< Maximum temperature threshold (°C)
+    float humidityMin; //!< Minimum air humidity threshold (%)
+    float humidityMax; //!< Maximum air humidity threshold (%)
+    float moistureMin; //!< Minimum soil moisture threshold (%)
+    float moistureMax; //!< Maximum soil moisture threshold (%)
+    float lightMin;    //!< Minimum light hours required
+    float lightMax;    //!< Maximum light hours allowed
 };
 
 /*!
