@@ -3,6 +3,7 @@
 #include "drivers/sensors/temperature-sensor/bme280-hal.h"
 #include "drivers/sensors/moisture-sensor/moisture-sensor-hal.h"
 #include "drivers/sensors/light-sensor/light-sensor.h"
+#include "tasks/plant/plant-config.h"
 
 using namespace PlantMonitor::Drivers;
 
@@ -45,15 +46,13 @@ static bool prv_read_all_sensors(SensorData &data) {
     data.humidity = sensor_task_environmental_sensor->readHumidity();
     data.moisture = sensor_task_moisture_sensor->readMoistureLevel();
 
-    //Serial.printf("[SENSORS] [Light] Raw: %d\n" , sensor_task_light_sensor->readRaw());
-    //Serial.printf("[SENSORS] [Light] Voltage: %f\n" , sensor_task_light_sensor->readVoltage());
-    //Serial.printf("[SENSORS] [Light] Percentage: %f\n" , sensor_task_light_sensor->readPercentage());
+    // Read light sensor with averaging (10 samples to avoid spurious readings)
+    int lightRawAvg = sensor_task_light_sensor->readRawAverage(10);
+    float lightPercentage = (lightRawAvg * 100.0f) / 4095.0f;
 
-    if (sensor_task_light_sensor->readPercentage() > 50) {
-        data.lightDetected = true; // TODO: Light sensor
-    } else {
-        data.lightDetected = false;
-    }
+    // Use configured percentage threshold from plant-config.h
+    using namespace PlantMonitor::Tasks;
+    data.lightDetected = (lightPercentage >= LIGHT_DETECTION_THRESHOLD_PERCENT);
 
     if (isnan(data.temperature) || isnan(data.humidity)) {
         Serial.println("[SENSORS] Invalid readings");

@@ -7,6 +7,7 @@
  */
 
 #include <esp_task_wdt.h>
+#include <time.h>
 #include "iot-task.h"
 #include "iot-task-types.h"
 #include "ble-protocol.h"
@@ -259,6 +260,18 @@ static IoTState prv_handle_wifi_connecting() {
     if (s_wifi->isConnected()) {
         Serial.println("[WIFI] Connected!");
         Serial.printf("[WIFI] IP: %s\n", WiFi.localIP().toString().c_str());
+
+        // Configure NTP for time synchronization (needed for light tracking)
+        if (!s_ctx.ntpConfigured) {
+            Serial.println("[NTP] Configuring time synchronization...");
+            // Configure for Italy timezone (CET-1CEST, UTC+1 with DST)
+            configTime(3600, 3600, "pool.ntp.org", "time.nist.gov");
+            setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
+            tzset();
+            s_ctx.ntpConfigured = true;
+            Serial.println("[NTP] Time sync configured (will sync in background)");
+        }
+
         s_ctx.wifiConnectStart = 0;
         return IoTState::MqttOperating;
     }
@@ -283,6 +296,9 @@ static IoTState prv_handle_mqtt_operating() {
             delete s_mqtt;
             s_mqtt = nullptr;
         }
+
+        // Reset NTP flag so it will be reconfigured on reconnect
+        s_ctx.ntpConfigured = false;
 
         return IoTState::WifiConnecting;
     }
@@ -317,19 +333,25 @@ static IoTState prv_handle_mqtt_operating() {
         }
 
         s_ctx.mqttInitRetries = 0;
+        s_ctx.firstMqttPublish = true;  // Force immediate publish after connection
         Serial.println("[MQTT] Connected!");
     }
 
     s_mqtt->poll();
 
-    // Publish telemetry periodically
+    // Publish telemetry: immediately after connection, then periodically
     uint32_t now = millis();
-    if (now - s_ctx.lastMqttPublish >= IOT_MQTT_PUB_INTERVAL_MS) {
+    bool shouldPublish = s_ctx.firstMqttPublish ||
+                        (now - s_ctx.lastMqttPublish >= IOT_MQTT_PUB_INTERVAL_MS);
+
+    if (shouldPublish) {
         s_ctx.lastMqttPublish = now;
+        s_ctx.firstMqttPublish = false;
 
         SensorData data;
         if (getLatestSensorData(data)) {
             s_mqtt->publishTelemetry(s_ctx.deviceId, data);
+            Serial.println("[MQTT] Telemetry published");
         } else {
             Serial.println("[MQTT] Sensor data unavailable");
         }
@@ -364,6 +386,8 @@ static void prv_iot_task(void *) {
     s_ctx.deviceId = 1;
     s_ctx.testWifi = nullptr;
     s_ctx.lastProgressSent = -1;
+    s_ctx.firstMqttPublish = true;
+    s_ctx.ntpConfigured = false;
 
     // Create BLE message queue
     s_ctx.bleQueue = xQueueCreate(5, sizeof(BleMessage));

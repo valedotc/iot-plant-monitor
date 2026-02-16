@@ -21,12 +21,11 @@ namespace Drivers {
  */
 class LightSensor {
 
-  public:
-    /*!
-         * \brief Constructor for LightSensor
-         * \param pin GPIO pin number where the light sensor is connected (default: Config::GROW_LIGHT_PIN)
-         */
-    explicit LightSensor(uint8_t pin = LIGHT_SENSOR_DEFAULT_PIN);
+        void begin();
+        int readRaw();
+        int readRawAverage(uint8_t samples = 10);  // Read multiple samples and return average
+        float readVoltage(float vref = 3.3f) ;
+        float readPercentage(int minRaw = 0, int maxRaw = 4095) ; // Maps raw to 0..100%
 
     /*!
          * \brief Initialize the light sensor

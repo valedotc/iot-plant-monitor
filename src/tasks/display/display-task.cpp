@@ -2,8 +2,12 @@
 
 #include "drivers/display/display-hal.h"
 #include "../sensor/sensor-task.h"
+#include "../plant/plant-state-machine.h"
 #include "drivers/sensors/button-sensor/button-sensor-hal.h"
 #include "utils/bitmap/bluetooth-icon.h"
+#include "utils/bitmap/plant-happy-icon.h"
+#include "utils/bitmap/plant-angry-icon.h"
+#include "utils/bitmap/plant-dying-icon.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -30,6 +34,8 @@ static uint32_t display_task_last_interaction = 0;
 static QueueHandle_t display_task_ui_event_queue = nullptr;
 
 PlantMonitor::Drivers::ButtonHal *display_task_button = nullptr;
+
+static bool display_task_plant_state_initialized = false;
 
 /*!
  * \brief ISR callback for boot button press
@@ -237,27 +243,29 @@ static void prv_draw_moisture(const SensorData &data) {
 }
 
 /*!
- * \brief Draw the idle face with system status
+ * \brief Draw the idle face with system status (HAPPY state)
  */
 static void prv_draw_face_idle() {
     display_task_driver->clear();
+    display_task_driver->drawBitmap(plant_happy_bmp);
+    display_task_driver->update();
+}
 
-    // Large friendly face (centered)
-    display_task_driver->setTextSize(4);
-    display_task_driver->setCursor(40, 40);
-    display_task_driver->printf(":)");
+/*!
+ * \brief Draw angry face (ANGRY state)
+ */
+static void prv_draw_face_angry() {
+    display_task_driver->clear();
+    display_task_driver->drawBitmap(plant_angry_bmp);
+    display_task_driver->update();
+}
 
-    // Status message
-    display_task_driver->setTextSize(1);
-    int16_t msgX = (128 - 13 * 6) / 2;
-    display_task_driver->setCursor(msgX, 100);
-    display_task_driver->printf("Plant is fine");
-
-    // Optional: Small icon indicators at top
-    //display_task_driver->setTextSize(1);
-    //display_task_driver->setCursor(4, 4);
-    //display_task_driver->printf("[OK]");
-
+/*!
+ * \brief Draw dying face (DYING state)
+ */
+static void prv_draw_face_dying() {
+    display_task_driver->clear();
+    display_task_driver->drawBitmap(plant_dying_bmp);
     display_task_driver->update();
 }
 
@@ -310,6 +318,7 @@ static void prv_display_task(void *) {
 
     display_task_button = new PlantMonitor::Drivers::ButtonHal(SWITCH_PIN, BUTTON_INPUT_PULLUP, prv_on_boot_button_pressed);
 
+    // Set initial state based on configuration
     if (!ConfigHandler::isConfigured()) {
         display_task_current_state = UiState::UI_STATE_PAIRING;
     }
@@ -319,6 +328,18 @@ static void prv_display_task(void *) {
 
     while (true) {
         uint32_t now = millis();
+
+        // Initialize plant state machine once device is configured
+        if (ConfigHandler::isConfigured() && !display_task_plant_state_initialized) {
+            initPlantStateMachine(); // Uses default timeout from plant-config.h
+            display_task_plant_state_initialized = true;
+            Serial.println("[DISPLAY] Plant state machine initialized");
+        }
+
+        // Update plant state machine only if initialized
+        if (display_task_plant_state_initialized) {
+            updatePlantState();
+        }
 
         if (xQueueReceive(display_task_ui_event_queue, &evt, 0) == pdTRUE) {
             if (display_task_button->debouncing()) {
@@ -340,9 +361,22 @@ static void prv_display_task(void *) {
                 case UiState::UI_STATE_PAIRING:
                     prv_draw_bluetooth_icon();
                     break;
-                case UiState::UI_STATE_FACE_IDLE:
-                    prv_draw_face_idle();
+                case UiState::UI_STATE_FACE_IDLE: {
+                    // Draw face based on plant state
+                    PlantState plantState = getCurrentPlantState();
+                    switch (plantState) {
+                        case PlantState::PLANT_HAPPY:
+                            prv_draw_face_idle();
+                            break;
+                        case PlantState::PLANT_ANGRY:
+                            prv_draw_face_angry();
+                            break;
+                        case PlantState::PLANT_DYING:
+                            prv_draw_face_dying();
+                            break;
+                    }
                     break;
+                }
                 case UiState::UI_STATE_PAGE_TEMPERATURE:
                     prv_draw_temperature(data);
                     break;

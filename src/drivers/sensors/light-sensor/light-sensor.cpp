@@ -15,6 +15,20 @@ int LightSensor::readRaw() {
     return analogRead(_pin);
 }
 
+int LightSensor::readRawAverage(uint8_t samples) {
+    if (samples == 0) samples = 1;
+
+    uint32_t sum = 0;
+    for (uint8_t i = 0; i < samples; i++) {
+        sum += analogRead(_pin);
+        if (i < samples - 1) {
+            delayMicroseconds(100);  // Small delay between readings
+        }
+    }
+
+    return sum / samples;
+}
+
 float LightSensor::readVoltage(float vref) {
     int raw = analogRead(_pin);
     return raw / 4095.0f;
