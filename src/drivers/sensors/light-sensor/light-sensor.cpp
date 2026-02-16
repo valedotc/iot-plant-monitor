@@ -4,8 +4,9 @@ namespace PlantMonitor {
 namespace Drivers {
 
 LightSensor::LightSensor(uint8_t pin)
-    : _pin(pin) {
+: _pin(pin) {
 }
+
 
 void LightSensor::begin() {
     pinMode(_pin, INPUT);

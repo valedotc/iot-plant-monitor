@@ -1,4 +1,5 @@
-#include <Wire.h>
+#pragma once
+
 #include <Arduino.h>
 #include "app-config.h"
 
@@ -20,43 +21,45 @@ namespace Drivers {
  * \brief Driver for a light sensor connected to an analog pin
  */
 class LightSensor {
-
-        void begin();
-        int readRaw();
-        int readRawAverage(uint8_t samples = 10);  // Read multiple samples and return average
-        float readVoltage(float vref = 3.3f) ;
-        float readPercentage(int minRaw = 0, int maxRaw = 4095) ; // Maps raw to 0..100%
+  public:
+    LightSensor(uint8_t pin = LIGHT_SENSOR_DEFAULT_PIN);
 
     /*!
-         * \brief Initialize the light sensor
-         * \return true if initialization was successful, false otherwise
-         */
+     * \brief Initialize the light sensor
+     */
     void begin();
 
     /*!
-         * \brief Read the raw analog value from the light sensor
-         * \return Raw analog value
-         */
+     * \brief Read the raw analog value from the light sensor
+     * \return Raw analog value
+     */
     int readRaw();
 
     /*!
-         * \brief Read the voltage from the light sensor
-         * \param vref Reference voltage for ADC conversion (default: 3.3V)
-         * \return Voltage value
-         */
+     * \brief Read multiple samples and return average
+     * \param samples Number of samples to average (default: 10)
+     * \return Average raw analog value
+     */
+    int readRawAverage(uint8_t samples = 10);
+
+    /*!
+     * \brief Read the voltage from the light sensor
+     * \param vref Reference voltage for ADC conversion (default: 3.3V)
+     * \return Voltage value
+     */
     float readVoltage(float vref = ADC_REF_VOLTAGE);
 
     /*!
-         * \brief Read the light intensity as a percentage (0-100%)
-         * \param minRaw Minimum raw value corresponding to 0% (default: 0)
-         * \param maxRaw Maximum raw value corresponding to 100% (default: 4095)
-         * \return Light intensity percentage
-         */
-    float readPercentage(int minRaw = ADC_MIN_VALUE, int maxRaw = ADC_MAX_VALUE); // Maps raw to 0..100%
+     * \brief Read the light intensity as a percentage (0-100%)
+     * \param minRaw Minimum raw value corresponding to 0% (default: 0)
+     * \param maxRaw Maximum raw value corresponding to 100% (default: 4095)
+     * \return Light intensity percentage
+     */
+    float readPercentage(int minRaw = ADC_MIN_VALUE, int maxRaw = ADC_MAX_VALUE);
 
   private:
     uint8_t _pin; //!< GPIO pin number
 };
 
-} //namespace Drivers
-} //namespace PlantMonitor
+} // namespace Drivers
+} // namespace PlantMonitor
