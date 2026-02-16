@@ -23,17 +23,19 @@ std::vector<WiFiNetwork> WiFiHal::scanNetworks(size_t maxNetworks) {
         String ssid = WiFi.SSID(i);
 
         // Skip empty SSIDs (hidden networks)
-        if (ssid.length() == 0) continue;
+        if (ssid.length() == 0)
+            continue;
 
         // Skip duplicates (same SSID on different channels)
         bool duplicate = false;
-        for (const auto& net : networks) {
+        for (const auto &net : networks) {
             if (net.ssid == ssid) {
                 duplicate = true;
                 break;
             }
         }
-        if (duplicate) continue;
+        if (duplicate)
+            continue;
 
         WiFiNetwork net;
         net.ssid = ssid;
@@ -43,7 +45,7 @@ std::vector<WiFiNetwork> WiFiHal::scanNetworks(size_t maxNetworks) {
     }
 
     // Sort by signal strength (strongest first)
-    std::sort(networks.begin(), networks.end(), [](const WiFiNetwork& a, const WiFiNetwork& b) {
+    std::sort(networks.begin(), networks.end(), [](const WiFiNetwork &a, const WiFiNetwork &b) {
         return a.rssi > b.rssi;
     });
 
@@ -59,36 +61,32 @@ std::vector<WiFiNetwork> WiFiHal::scanNetworks(size_t maxNetworks) {
     return networks;
 }
 
-WiFiHal::WiFiHal(const char* ssid, const char* password,
-                 int max_attempts, int retry_delay_ms)
-    : m_ssid(ssid)
-    , m_password(password)
-    , m_max_attempts(max_attempts)
-    , m_retry_delay_ms(retry_delay_ms) {
+WiFiHal::WiFiHal(const char *ssid, const char *password, int max_attempts, int retry_delay_ms)
+    : m_ssid(ssid), m_password(password), m_max_attempts(max_attempts), m_retry_delay_ms(retry_delay_ms) {
 }
 
 bool WiFiHal::begin() {
     WiFi.disconnect();
-    delay(1000);
-    
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Short delay to ensure clean start
+
     Serial.println("[WiFi] Connecting to network...");
     WiFi.begin(m_ssid, m_password);
-    
+
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < m_max_attempts) {
-        delay(m_retry_delay_ms);
+        vTaskDelay(pdMS_TO_TICKS(m_retry_delay_ms)); // Wait before retrying
         Serial.print(".");
         attempts++;
     }
     Serial.println();
-    
+
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("[WiFi] Connection failed!");
         return false;
     }
-    
+
     Serial.println("[WiFi] Connected successfully!");
-    
+
     if (!waitForValidIP()) {
         Serial.println("[WiFi] ERROR: Failed to obtain valid IP address");
         Serial.println("[WiFi] Troubleshooting:");
@@ -97,22 +95,22 @@ bool WiFiHal::begin() {
         Serial.println("[WiFi]   3. Reload the Arduino sketch");
         return false;
     }
-    
+
     printStatus();
     return true;
 }
 
 bool WiFiHal::waitForValidIP() {
     Serial.print("[WiFi] Waiting for IP address");
-    
+
     int attempts = 0;
     while (WiFi.localIP() == IPAddress(0, 0, 0, 0) && attempts < 10) {
-        delay(500);
+        vTaskDelay(pdMS_TO_TICKS(500)); // Wait 500ms before checking again
         Serial.print(".");
         attempts++;
     }
     Serial.println();
-    
+
     return WiFi.localIP() != IPAddress(0, 0, 0, 0);
 }
 
