@@ -1,2 +1,8 @@
 .pio
 .vscode
+network_config.h
+
+private-data.h
+
+# Generated documentation
+docs/
