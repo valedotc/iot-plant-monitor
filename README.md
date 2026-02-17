@@ -4,6 +4,30 @@ An ESP32-based smart plant monitoring system that tracks environmental condition
 
 Initial device setup is performed wirelessly over Bluetooth Low Energy from a companion mobile app.
 
+<p align="center">
+  <img src="assets/device.png" alt="IoT Plant Monitor device" width="350"/>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/4ycZR4Utj98">
+    <img src="https://img.shields.io/badge/Demo-Watch%20on%20YouTube-red?style=for-the-badge&logo=youtube" alt="Watch Demo on YouTube"/>
+  </a>
+</p>
+
+## Companion App
+
+The device is configured via a companion mobile app available for **Android** and **iOS**:
+
+[app-plant-monitor](https://github.com/valedotc/app-plant-monitor)
+
+The app handles BLE pairing, Wi-Fi credential setup, and plant threshold configuration.
+
+## Documentation
+
+The full API documentation is generated with Doxygen and published on GitHub Pages:
+
+[Documentation](https://valedotc.github.io/iot-plant-monitor/)
+
 ## Features
 
 - **Sensor monitoring** -- BME280 (temperature & humidity), capacitive soil moisture sensor, photoresistor (light detection)
@@ -16,24 +40,24 @@ Initial device setup is performed wirelessly over Bluetooth Low Energy from a co
 
 ## Hardware
 
-| Component | Details |
-|---|---|
-| Microcontroller | ESP32 (Denky32 / ESP32-DevKitC) |
-| Display | SH1107 128x128 monochrome OLED (I2C) |
-| Temp/Humidity | Bosch BME280 (I2C) |
-| Soil moisture | Capacitive analog sensor (GPIO 34) |
-| Light | Photoresistor (analog) |
-| Button | Tactile switch on GPIO 32 (internal pull-up) |
+| Component       | Details                                      |
+| --------------- | -------------------------------------------- |
+| Microcontroller | ESP32 (Denky32 / ESP32-DevKitC)              |
+| Display         | SH1107 128x128 monochrome OLED (I2C)         |
+| Temp/Humidity   | Bosch BME280 (I2C)                           |
+| Soil moisture   | Capacitive analog sensor (GPIO 34)           |
+| Light           | Photoresistor (analog)                       |
+| Button          | Tactile switch on GPIO 32 (internal pull-up) |
 
 ### Wiring summary
 
-| Signal | GPIO |
-|---|---|
-| I2C SDA | 21 |
-| I2C SCL | 22 |
-| Soil moisture (ADC) | 34 |
-| Light sensor (ADC) | 35 |
-| Button | 32 |
+| Signal              | GPIO |
+| ------------------- | ---- |
+| I2C SDA             | 21   |
+| I2C SCL             | 22   |
+| Soil moisture (ADC) | 34   |
+| Light sensor (ADC)  | 35   |
+| Button              | 32   |
 
 ## Project Structure
 
@@ -122,11 +146,11 @@ Hold the button for **10 seconds**. A progress bar is shown on the display. Once
 
 The system runs three FreeRTOS tasks across the ESP32's two cores:
 
-| Task | Core | Priority | Responsibility |
-|---|---|---|---|
-| **DisplayTask** | 0 | 3 (highest) | UI rendering, button input, plant state updates |
-| **SensorTask** | 1 | 2 | Periodic sensor reads, filtering, shared data |
-| **IoTTask** | 1 | 1 | BLE provisioning, Wi-Fi, MQTT telemetry |
+| Task            | Core | Priority    | Responsibility                                  |
+| --------------- | ---- | ----------- | ----------------------------------------------- |
+| **DisplayTask** | 0    | 3 (highest) | UI rendering, button input, plant state updates |
+| **SensorTask**  | 1    | 2           | Periodic sensor reads, filtering, shared data   |
+| **IoTTask**     | 1    | 1           | BLE provisioning, Wi-Fi, MQTT telemetry         |
 
 ### IoT Task FSM
 
@@ -152,29 +176,29 @@ Timing parameters are configurable in [plant-config.h](src/tasks/plant/plant-con
 
 Parameters sent via BLE during provisioning (array indices):
 
-| Index | Parameter | Unit |
-|---|---|---|
-| 0 | Plant type ID | - |
-| 1 | Min temperature | C |
-| 2 | Max temperature | C |
-| 3 | Min humidity | % |
-| 4 | Max humidity | % |
-| 5 | Min soil moisture | % |
-| 6 | Max soil moisture | % |
-| 7 | Min light hours | h |
-| 8 | Device ID | - |
+| Index | Parameter         | Unit |
+| ----- | ----------------- | ---- |
+| 0     | Plant type ID     | -    |
+| 1     | Min temperature   | C    |
+| 2     | Max temperature   | C    |
+| 3     | Min humidity      | %    |
+| 4     | Max humidity      | %    |
+| 5     | Min soil moisture | %    |
+| 6     | Max soil moisture | %    |
+| 7     | Min light hours   | h    |
+| 8     | Device ID         | -    |
 
 ## Dependencies
 
 Managed automatically by PlatformIO:
 
-| Library | Version | Purpose |
-|---|---|---|
-| NimBLE-Arduino | ^1.4.3 | Bluetooth Low Energy |
-| Adafruit SH110X | ^2.1.14 | OLED display driver |
-| Adafruit BME280 | ^2.3.0 | Temperature & humidity sensor |
-| ArduinoMqttClient | ^0.1.8 | MQTT protocol |
-| ArduinoJson | ^7.4.2 | JSON serialization |
+| Library           | Version | Purpose                       |
+| ----------------- | ------- | ----------------------------- |
+| NimBLE-Arduino    | ^1.4.3  | Bluetooth Low Energy          |
+| Adafruit SH110X   | ^2.1.14 | OLED display driver           |
+| Adafruit BME280   | ^2.3.0  | Temperature & humidity sensor |
+| ArduinoMqttClient | ^0.1.8  | MQTT protocol                 |
+| ArduinoJson       | ^7.4.2  | JSON serialization            |
 
 ## License
 
