@@ -21,6 +21,9 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
+      - name: Create private-data.h from example
+        run: cp src/utils/configuration/private-data.h.example src/utils/configuration/private-data.h
+
       - name: Build firmware (ESP32)
         run: pio run -e denky32
 
